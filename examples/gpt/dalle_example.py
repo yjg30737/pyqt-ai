@@ -57,8 +57,8 @@ class MainWindow(QMainWindow):
     def __initUi(self):
         self.setWindowTitle('PyQt GPT DALL-E Example')
 
-        apiWidget = ApiWidget(self.__api_key)
-        apiWidget.apiKeyAccepted.connect(self.__api_key_accepted)
+        self.__apiWidget = ApiWidget(self.__api_key, self.__wrapper)
+        self.__apiWidget.apiKeyAccepted.connect(self.__api_key_accepted)
         self.__imageWidget = ImageView()
         self.__promptInputLineEdit = QLineEdit()
         self.__promptInputLineEdit.setPlaceholderText('Enter the prompt...')
@@ -67,7 +67,7 @@ class MainWindow(QMainWindow):
         self.__btn.clicked.connect(self.__run)
 
         lay = QVBoxLayout()
-        lay.addWidget(apiWidget)
+        lay.addWidget(self.__apiWidget)
         lay.addWidget(self.__promptInputLineEdit)
         lay.addWidget(self.__btn)
         lay.addWidget(self.__imageWidget)
@@ -85,10 +85,11 @@ class MainWindow(QMainWindow):
         self.__t.finished.connect(self.__finished)
         self.__t.start()
 
-    def __api_key_accepted(self, api_key):
-        self.__API_KEY = api_key
-        self.__settings_ini.setValue('API_KEY', api_key)
-        self.__wrapper.set_api(api_key)
+    def __api_key_accepted(self):
+        self.__api_key = self.__apiWidget.getApi()
+        self.__settings_ini.setValue('API_KEY', self.__api_key)
+        f = self.__wrapper.set_api(self.__api_key)
+        self.__apiWidget.setApi(f)
 
     def __started(self):
         self.__btn.setEnabled(False)

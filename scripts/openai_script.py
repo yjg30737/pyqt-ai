@@ -12,7 +12,7 @@ from scripts.db_handler import GenericDBHandler, Conversation, Assistant, Thread
 
 # GPTWrapper is a base class for GPTAssistantWrapper and GPTGeneralWrapper
 class GPTWrapper:
-    def __init__(self, api_key=None, db_url=''):
+    def __init__(self, api_key=None, db_url='sqlite:///conv.db'):
         super().__init__()
         # Initialize OpenAI client
         if api_key:
@@ -31,6 +31,7 @@ class GPTWrapper:
             if self._is_gpt_available:
                 self._api_key = api_key
                 self._client = OpenAI(api_key=api_key)
+
             return self._is_gpt_available
         except Exception as e:
             print(e)

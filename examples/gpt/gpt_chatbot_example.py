@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
         self.__api_key = self.__settings_ini.value('API_KEY', type=str)
 
         # Set SQLite database path as default
-        self.__wrapper = GPTGeneralWrapper(self.__api_key, 'sqlite:///conv.db')
+        self.__wrapper = GPTGeneralWrapper(self.__api_key)
 
     def __initUi(self):
         self.setWindowTitle('PyQt GPT Chatbot Example')

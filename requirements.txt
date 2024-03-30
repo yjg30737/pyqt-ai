@@ -1,0 +1,16 @@
+# GUI
+qtpy
+PyQt6
+PySide6
+
+# OPENAI
+openai
+
+# DB
+sqlalchemy
+psycopg2
+
+# ETC
+python-dotenv
+requests
+

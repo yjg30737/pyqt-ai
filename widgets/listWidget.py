@@ -41,7 +41,7 @@ class AddDelListWidget(QWidget):
         return self.__listWidget
 
     def __add(self):
-        dialog = InputDialog('Add', '', self)
+        dialog = InputDialog('Add', [('Name', '', True)], self)
         reply = dialog.exec()
         if reply == QDialog.Accepted:
             text = dialog.getText()

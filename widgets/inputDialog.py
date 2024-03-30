@@ -1,18 +1,41 @@
-from qtpy.QtWidgets import QDialog, QVBoxLayout, QLineEdit, QFrame, QPushButton, QHBoxLayout, QWidget
+from qtpy.QtWidgets import QDialog, QFormLayout, QVBoxLayout, QLineEdit, QFrame, QPushButton, QHBoxLayout, QWidget
 from qtpy.QtCore import Qt
 
 
 class InputDialog(QDialog):
-    def __init__(self, title, text, parent=None):
+    def __init__(self, title, attributes_list, parent=None):
+        """
+        :param title: Title of the dialog
+        :param attributes: Attributes of the dialog.
+        Looks like
+        [
+            ('key1', 'value1', True),
+            ('key2', 'value2', False),
+            ...
+        ]
+        :param parent:
+        """
         super().__init__(parent)
-        self.__initUi(title, text)
+        self.__initVal(attributes_list)
+        self.__initUi(title)
 
-    def __initUi(self, title, text):
+    def __initVal(self, attributes_list):
+        self.__attr = attributes_list
+
+    def __initUi(self, title):
         self.setWindowTitle(title)
         self.setWindowFlags(Qt.Window | Qt.WindowCloseButtonHint)
 
-        self.__newName = QLineEdit(text)
-        self.__newName.textChanged.connect(self.__setAccept)
+        self.__lay = QFormLayout()
+
+        for obj in self.__attr:
+            key, value, required = obj
+            lineEdit = QLineEdit(value)
+            self.__lay.addRow(key, lineEdit)
+            lineEdit.textChanged.connect(self.__setAccept)
+
+        mainWidget = QWidget()
+        mainWidget.setLayout(self.__lay)
 
         sep = QFrame()
         sep.setFrameShape(QFrame.HLine)
@@ -34,14 +57,25 @@ class InputDialog(QDialog):
         okCancelWidget.setLayout(lay)
 
         lay = QVBoxLayout()
-        lay.addWidget(self.__newName)
+        lay.addWidget(mainWidget)
         lay.addWidget(sep)
         lay.addWidget(okCancelWidget)
 
         self.setLayout(lay)
 
-    def getText(self):
-        return self.__newName.text()
+        self.__setAccept()
 
-    def __setAccept(self, text):
-        self.__okBtn.setEnabled(text.strip() != '')
+    def getAttributes(self):
+        return [value.text() for value in [self.__lay.itemAt(i).widget() for i in range(self.__lay.count())]]
+
+    def __setAccept(self):
+        # Enable OK button if all required fields are filled
+        # Get widgets in the form layout
+        widgets = [self.__lay.itemAt(i).widget() for i in range(self.__lay.count())]
+        for i, obj in enumerate(self.__attr):
+            key, value, required = obj
+            if required:
+                if not widgets[i].text().strip():
+                    self.__okBtn.setEnabled(False)
+                    return
+        self.__okBtn.setEnabled(True)

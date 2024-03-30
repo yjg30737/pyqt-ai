@@ -48,11 +48,12 @@ class GPTWrapper:
 
 
 class GPTAssistantWrapper(GPTWrapper):
-    def __init__(self, api_key=None, db_url=None):
+    def __init__(self, api_key=None, db_url='sqlite:///conv.db'):
         super().__init__(api_key=api_key, db_url=db_url)
         self.__assistant_id = None
         self.__thread_id = None
         self.__run_id = None
+        self._attributes = ['name', 'instructions', 'tools', 'model']
 
     def clear_assistant(self):
         self._db_handler.delete(Assistant)
@@ -133,10 +134,28 @@ class GPTAssistantWrapper(GPTWrapper):
         content_data = message_data["content"][0]
         print(content_data)
 
+    def get_assistant_attributes(self):
+        return self._attributes
+
 
 class GPTGeneralWrapper(GPTWrapper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._text_attributes = [
+            'model',
+            'messages',
+            'n',
+            'stream',
+            'response_format',
+        ]
+        self._image_attributes = [
+            'model',
+            'prompt',
+            'n',
+            'style',
+            'size',
+            'response_format',
+        ]
 
     def get_image_url_from_local(self, image_path):
         # Function to encode the image
@@ -257,6 +276,12 @@ class GPTGeneralWrapper(GPTWrapper):
             except Exception as e:
                 print(e)
                 raise Exception(e)
+
+    def get_text_attributes(self):
+        return self._text_attributes
+
+    def get_image_attributes(self):
+        return self._image_attributes
 
 def is_gpt_vision(model: str):
     return model == 'gpt-4-vision-preview'

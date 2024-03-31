@@ -57,13 +57,13 @@ class GPTAssistantWrapper(GPTWrapper):
         self.__thread_id = None
         self.__run_id = None
         self._assistant_attributes = [
-            {'name': 'Name', 'attribute': 'name', 'default': 'Math Tutor'},
-            {'name': 'Instructions', 'attribute': 'instructions', 'default': 'You are a personal math tutor. Write and run code to answer math questions.'},
+            {'name': 'Name', 'attribute': 'name', 'default': 'Math Tutor', 'type': 'text'},
+            {'name': 'Instructions', 'attribute': 'instructions', 'default': 'You are a personal math tutor. Write and run code to answer math questions.', 'type': 'long_text'},
             # {'name': 'Tools', 'attribute': 'tools', 'default': [{"type": "code_interpreter"}]},
-            {'name': 'Model', 'attribute': 'model', 'default': 'gpt-4-0125-preview', 'selection': TEXT_MODELS},
+            {'name': 'Model', 'attribute': 'model', 'default': 'gpt-4-0125-preview', 'selection': TEXT_MODELS, 'type': 'selection'},
          ]
         self._thread_attributes = [
-            {'name': 'Name', 'attribute': 'name', 'default': 'ABC'},
+            {'name': 'Name', 'attribute': 'name', 'default': 'ABC', 'type': 'text'},
         ]
 
     def clear_assistant(self):
@@ -156,21 +156,21 @@ class GPTGeneralWrapper(GPTWrapper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._text_attributes = [
-            {'name': 'Model', 'attribute': 'model', 'default': 'gpt-4-0125-preview',
-             'selection': TEXT_MODELS},
-            {'name': 'System', 'attribute': 'system', 'default': 'You are a very helpful assistant.'},
-            {'name': 'N', 'attribute': 'n', 'default': 1, 'min': 1, 'max': 10},
+            {'name': 'Model', 'attribute': 'model', 'default': 'gpt-4-0125-preview', 'type': 'selection',
+             'selection': TEXT_MODELS },
+            {'name': 'System', 'attribute': 'system', 'default': 'You are a very helpful assistant.', 'type': 'long_text'},
+            {'name': 'N', 'attribute': 'n', 'default': 1, 'min': 1, 'max': 10, 'type': 'number'},
             # {'name': 'Temperature', 'attribute': 'temperature', 'default': 1},
             # {'name': 'Top P', 'attribute': 'top_p', 'default': 1},
             # {'name': 'Frequency Penalty', 'attribute': 'frequency_penalty', 'default': 0},
             # {'name': 'Presence Penalty', 'attribute': 'presence_penalty', 'default': 0},
-            {'name': 'Response Format', 'attribute': 'response_format', 'default': 'text', 'selection': ['text', 'json_mode']},
-            {'name': 'Stream', 'attribute': 'stream', 'default': False},
+            {'name': 'Response Format', 'attribute': 'response_format', 'default': 'text', 'selection': ['text', 'json_mode'], 'type': 'selection'},
+            {'name': 'Stream', 'attribute': 'stream', 'default': False, 'type': 'boolean'},
         ]
         self._image_attributes = [
-            {'name': 'Model', 'attribute': 'model', 'default': 'dall-e-3', selection: IMAGE_MODELS},
+            {'name': 'Model', 'attribute': 'model', 'default': 'dall-e-3', selection: IMAGE_MODELS, 'type': 'selection'},
             {'name': 'Prompt', 'attribute': 'prompt', 'default': 'Photorealistic,\nClose-up portrait of a person for an ID card, neutral background, professional attire, clear facial features, eye-level shot, soft lighting to highlight details without harsh shadows, high resolution for print quality --ar 1:1'},
-            {'name': 'N', 'attribute': 'n', 'default': 1, 'min': 1, 'max': 4},
+            {'name': 'N', 'attribute': 'n', 'default': 1, 'min': 1, 'max': 4, 'type': 'number'},
             {'name': 'Style', 'attribute': 'style', 'default': 'vivid'},
             {'name': 'Size', 'attribute': 'size', 'default': '1024x1024'},
             {'name': 'Response Format', 'attribute': 'response_format', 'default': 'b64_json'},

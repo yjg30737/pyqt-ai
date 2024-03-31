@@ -9,6 +9,9 @@ from openai import OpenAI
 from settings import OPENAI_API_KEY
 from scripts.db_handler import GenericDBHandler, Conversation, Assistant, Thread
 
+TEXT_MODELS = ['gpt-4-0125-preview', 'gpt-4', 'gpt-4-1106-preview', 'gpt-4-vision-preview',
+                             'gpt-3.5-turbo', 'gpt-3.5-turbo-16k']
+IMAGE_MODELS = ['dall-e-3']
 
 # GPTWrapper is a base class for GPTAssistantWrapper and GPTGeneralWrapper
 class GPTWrapper:
@@ -53,7 +56,15 @@ class GPTAssistantWrapper(GPTWrapper):
         self.__assistant_id = None
         self.__thread_id = None
         self.__run_id = None
-        self._attributes = ['name', 'instructions', 'tools', 'model']
+        self._assistant_attributes = [
+            {'name': 'Name', 'attribute': 'name', 'default': 'Math Tutor'},
+            {'name': 'Instructions', 'attribute': 'instructions', 'default': 'You are a personal math tutor. Write and run code to answer math questions.'},
+            # {'name': 'Tools', 'attribute': 'tools', 'default': [{"type": "code_interpreter"}]},
+            {'name': 'Model', 'attribute': 'model', 'default': 'gpt-4-0125-preview', 'selection': TEXT_MODELS},
+         ]
+        self._thread_attributes = [
+            {'name': 'Name', 'attribute': 'name', 'default': 'ABC'},
+        ]
 
     def clear_assistant(self):
         self._db_handler.delete(Assistant)
@@ -135,26 +146,34 @@ class GPTAssistantWrapper(GPTWrapper):
         print(content_data)
 
     def get_assistant_attributes(self):
-        return self._attributes
+        return self._assistant_attributes
+
+    def get_thread_attributes(self):
+        return self._thread_attributes
 
 
 class GPTGeneralWrapper(GPTWrapper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._text_attributes = [
-            'model',
-            'messages',
-            'n',
-            'stream',
-            'response_format',
+            {'name': 'Model', 'attribute': 'model', 'default': 'gpt-4-0125-preview',
+             'selection': TEXT_MODELS},
+            {'name': 'System', 'attribute': 'system', 'default': 'You are a very helpful assistant.'},
+            {'name': 'N', 'attribute': 'n', 'default': 1, 'min': 1, 'max': 10},
+            # {'name': 'Temperature', 'attribute': 'temperature', 'default': 1},
+            # {'name': 'Top P', 'attribute': 'top_p', 'default': 1},
+            # {'name': 'Frequency Penalty', 'attribute': 'frequency_penalty', 'default': 0},
+            # {'name': 'Presence Penalty', 'attribute': 'presence_penalty', 'default': 0},
+            {'name': 'Response Format', 'attribute': 'response_format', 'default': 'text', 'selection': ['text', 'json_mode']},
+            {'name': 'Stream', 'attribute': 'stream', 'default': False},
         ]
         self._image_attributes = [
-            'model',
-            'prompt',
-            'n',
-            'style',
-            'size',
-            'response_format',
+            {'name': 'Model', 'attribute': 'model', 'default': 'dall-e-3', selection: IMAGE_MODELS},
+            {'name': 'Prompt', 'attribute': 'prompt', 'default': 'Photorealistic,\nClose-up portrait of a person for an ID card, neutral background, professional attire, clear facial features, eye-level shot, soft lighting to highlight details without harsh shadows, high resolution for print quality --ar 1:1'},
+            {'name': 'N', 'attribute': 'n', 'default': 1, 'min': 1, 'max': 4},
+            {'name': 'Style', 'attribute': 'style', 'default': 'vivid'},
+            {'name': 'Size', 'attribute': 'size', 'default': '1024x1024'},
+            {'name': 'Response Format', 'attribute': 'response_format', 'default': 'b64_json'},
         ]
 
     def get_image_url_from_local(self, image_path):

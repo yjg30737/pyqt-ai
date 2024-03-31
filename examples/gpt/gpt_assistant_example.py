@@ -54,11 +54,9 @@ class MainWindow(QMainWindow):
             self.__settings_ini.setValue('API_KEY', '')
         self.__api_key = self.__settings_ini.value('API_KEY', type=str)
 
-        # Set SQLite database path as default
         self.__wrapper = GPTAssistantWrapper(self.__api_key)
-        self.__attr = self.__wrapper.get_assistant_attributes()[:2]
-        self.__attr[0] = ('Name', '', True)
-        self.__attr[1] = ('Instructions', '', True)
+        self.__assistant_attr = self.__wrapper.get_assistant_attributes()
+        self.__thread_attr = self.__wrapper.get_thread_attributes()
 
     def __initUi(self):
         self.setWindowTitle('PyQt GPT Chatbot Example')
@@ -76,8 +74,8 @@ class MainWindow(QMainWindow):
         messages = self.__wrapper.get_conversations()
         self.__chatBrowser.setMessages(messages)
 
-        self.__assistantWidget = AddDelTableWidget('Assistant', self.__attr[:2])
-        self.__threadWidget = AddDelTableWidget('Thread', self.__attr[:1])
+        self.__assistantWidget = AddDelTableWidget('Assistant', self.__assistant_attr)
+        self.__threadWidget = AddDelTableWidget('Thread', self.__thread_attr)
 
         self.__assistantWidget.added.connect(self.__add)
         self.__threadWidget.added.connect(self.__add)

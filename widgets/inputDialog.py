@@ -1,6 +1,8 @@
 from qtpy.QtWidgets import QDialog, QFormLayout, QVBoxLayout, QLineEdit, QFrame, QPushButton, QHBoxLayout, QWidget
 from qtpy.QtCore import Qt
 
+from scripts.qt_script import get_form_layout
+
 
 class InputDialog(QDialog):
     def __init__(self, title, attributes_list, parent=None):
@@ -9,8 +11,7 @@ class InputDialog(QDialog):
         :param attributes: Attributes of the dialog.
         Looks like
         [
-            ('key1', 'value1', True),
-            ('key2', 'value2', False),
+            {'name': 'Name', 'attribute': '', 'default': Math Tutor, 'selection': []},
             ...
         ]
         :param parent:
@@ -20,19 +21,14 @@ class InputDialog(QDialog):
         self.__initUi(title)
 
     def __initVal(self, attributes_list):
-        self.__attr = attributes_list
+        self.__input_attr = attributes_list
+        self.__output_attr = {obj['attribute']: obj['default'] for obj in self.__input_attr}
 
     def __initUi(self, title):
         self.setWindowTitle(title)
         self.setWindowFlags(Qt.Window | Qt.WindowCloseButtonHint)
 
-        self.__lay = QFormLayout()
-
-        for obj in self.__attr:
-            key, value, required = obj
-            lineEdit = QLineEdit(value)
-            self.__lay.addRow(key, lineEdit)
-            lineEdit.textChanged.connect(self.__setAccept)
+        self.__lay, self.__input_attr = get_form_layout(self.__input_attr)
 
         mainWidget = QWidget()
         mainWidget.setLayout(self.__lay)
@@ -66,16 +62,18 @@ class InputDialog(QDialog):
         self.__setAccept()
 
     def getAttributes(self):
-        return [value.text() for value in [self.__lay.itemAt(i).widget() for i in range(self.__lay.count())]]
+        return self.__output_attr
 
+    # FIXME
+    # Fix the problem which is that the OK button is enabled even if the required fields are not filled
     def __setAccept(self):
         # Enable OK button if all required fields are filled
         # Get widgets in the form layout
-        widgets = [self.__lay.itemAt(i).widget() for i in range(self.__lay.count())]
-        for i, obj in enumerate(self.__attr):
-            key, value, required = obj
-            if required:
-                if not widgets[i].text().strip():
-                    self.__okBtn.setEnabled(False)
-                    return
+        for i, obj in enumerate(self.__input_attr):
+            widget = obj['widget']
+            if not widget.text().strip():
+                self.__okBtn.setEnabled(False)
+                return
+            else:
+                self.__output_attr[i] = widget.text()
         self.__okBtn.setEnabled(True)

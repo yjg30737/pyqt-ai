@@ -17,7 +17,7 @@ class AddDelTableWidget(QWidget):
         self.__columns = columns
 
     def __initUi(self, lbl):
-        columns = [col[0] for col in self.__columns]
+        columns = [obj['name'] for obj in self.__columns]
 
         self.__tableWidget = QTableWidget()
         self.__tableWidget.setColumnCount(len(self.__columns))

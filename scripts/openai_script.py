@@ -168,7 +168,7 @@ class GPTGeneralWrapper(GPTWrapper):
             {'name': 'Stream', 'attribute': 'stream', 'default': False, 'type': 'boolean'},
         ]
         self._image_attributes = [
-            {'name': 'Model', 'attribute': 'model', 'default': 'dall-e-3', selection: IMAGE_MODELS, 'type': 'selection'},
+            {'name': 'Model', 'attribute': 'model', 'default': 'dall-e-3', 'selection': IMAGE_MODELS, 'type': 'selection'},
             {'name': 'Prompt', 'attribute': 'prompt', 'default': 'Photorealistic,\nClose-up portrait of a person for an ID card, neutral background, professional attire, clear facial features, eye-level shot, soft lighting to highlight details without harsh shadows, high resolution for print quality --ar 1:1'},
             {'name': 'N', 'attribute': 'n', 'default': 1, 'min': 1, 'max': 4, 'type': 'number'},
             {'name': 'Style', 'attribute': 'style', 'default': 'vivid'},
@@ -246,8 +246,9 @@ class GPTGeneralWrapper(GPTWrapper):
                                           ] + multiple_images_content[:]
                 openai_arg['messages'].append({"role": "user", "content": multiple_images_content})
             else:
-                self._db_handler.append(Conversation, self.get_message_obj("user", cur_text))
-                openai_arg['messages'].append({"role": "user", "content": cur_text})
+                user_obj = self.get_message_obj("user", cur_text)
+                self._db_handler.append(Conversation, user_obj)
+                openai_arg['messages'].append(user_obj)
             # If current model is "vision", default max token set to very low number by openai,
             # so let's set this to 4096 which is relatively better.
             if is_gpt_vision(model):
@@ -263,10 +264,11 @@ class GPTGeneralWrapper(GPTWrapper):
         try:
             if self.is_gpt_available():
                 response = self._client.chat.completions.create(**openai_arg)
-                response_content = response.choices[0].message.content
-                self._db_handler.append(Conversation, self.get_message_obj('assistant', response_content))
+                response = response.choices[0].message
+                response = self.get_message_obj(response.role, response.content)
+                self._db_handler.append(Conversation, response)
 
-                return response_content
+                return response
             else:
                 raise ValueError('GPT is not available')
         except Exception as e:

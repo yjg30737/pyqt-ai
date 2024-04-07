@@ -19,9 +19,11 @@ class ChatBrowser(QScrollArea):
 
     def setMessages(self, messages):
         for message in messages:
-            self.addMessage(message['content'], message['role'])
+            self.addMessage(message)
 
-    def addMessage(self, content, role):
+    def addMessage(self, message):
+        content = message['content']
+        role = message['role']
         chatLbl = QLabel(content)
         chatLbl.setWordWrap(True)
         chatLbl.setTextInteractionFlags(Qt.TextSelectableByMouse)

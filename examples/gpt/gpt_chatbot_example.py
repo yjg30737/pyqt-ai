@@ -14,7 +14,7 @@ os.environ['QT_API'] = 'pyside6'
 
 from qtpy.QtGui import QGuiApplication, QFont, QIcon
 from qtpy.QtWidgets import QHBoxLayout, QApplication, QLineEdit, QSizePolicy, QVBoxLayout, QWidget, QMainWindow, QPushButton, QApplication
-from qtpy.QtCore import Qt, QSettings, Signal, QCoreApplication, QThread
+from qtpy.QtCore import Qt, QSettings, Signal, QCoreApplication, QThread, Slot
 
 from settings import ROOT_DIR
 from widgets.chatBrowser import ChatBrowser, PromptWidget
@@ -83,6 +83,8 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(mainWidget)
 
+        self.__setAiEnabled(self.__wrapper.is_gpt_available())
+
     def __run(self, text):
         self.__chatBrowser.addMessage(self.__wrapper.get_message_obj('user', text))
 
@@ -92,14 +94,12 @@ class MainWindow(QMainWindow):
         self.__t.finished.connect(self.__finished)
         self.__t.start()
 
+    @Slot(str, bool)
     def __api_key_accepted(self, api_key, f):
         # Enable AI related features if API key is valid
         self.__setAiEnabled(f)
 
     def __setAiEnabled(self, f):
-        # You can also check if GPT is available by calling self.__wrapper.is_gpt_available()
-        # if self.__wrapper.is_gpt_available():
-
         if f:
             self.__promptWidget.setEnabled(True)
         else:

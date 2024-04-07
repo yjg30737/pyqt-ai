@@ -53,7 +53,6 @@ class ApiWidget(QWidget):
         except Exception as e:
             self.__apiCheckPreviewLbl.setStyleSheet("color: {}".format(QColor(255, 0, 0).name()))
             self.__apiCheckPreviewLbl.setText('API key is invalid')
-            print(e)
         finally:
             self.__apiCheckPreviewLbl.show()
             self.apiKeyAccepted.emit(self.__api_key, f)

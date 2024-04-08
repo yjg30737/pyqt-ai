@@ -26,6 +26,7 @@ QApplication.setFont(QFont('Arial', 12))
 
 class Thread(QThread):
     afterGenerated = Signal(dict)
+    errorGenerated = Signal(str)
 
     def __init__(self, wrapper, text):
         super(Thread, self).__init__()
@@ -38,7 +39,7 @@ class Thread(QThread):
             response = self.__wrapper.get_text_response(args)
             self.afterGenerated.emit(response)
         except Exception as e:
-            raise Exception(e)
+            self.errorGenerated.emit(str(e))
 
 
 class MainWindow(QMainWindow):
@@ -91,10 +92,10 @@ class MainWindow(QMainWindow):
         self.__t = Thread(self.__wrapper, text)
         self.__t.started.connect(self.__started)
         self.__t.afterGenerated.connect(self.__afterGenerated)
+        self.__t.errorGenerated.connect(self.__errorGenerated)
         self.__t.finished.connect(self.__finished)
         self.__t.start()
 
-    @Slot(str, bool)
     def __api_key_accepted(self, api_key, f):
         # Enable AI related features if API key is valid
         self.__setAiEnabled(f)
@@ -111,6 +112,10 @@ class MainWindow(QMainWindow):
 
     def __afterGenerated(self, response: dict):
         self.__chatBrowser.addMessage(response)
+
+    def __errorGenerated(self, error: str):
+        self.__chatBrowser.addMessage(self.__wrapper.get_message_obj('assistant', error))
+        QMessageBox.critical(self, 'Error', error)
 
     def __finished(self):
         pass

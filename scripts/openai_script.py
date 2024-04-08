@@ -203,7 +203,7 @@ class GPTGeneralWrapper(GPTWrapper):
         use_max_tokens=False,
         max_tokens=128000,
         stream=False,
-        images=[],
+        images_for_vision=[],
     ):
         system_obj = self.get_message_obj("system", system)
         previous_messages = [system_obj] + self.get_conversations()
@@ -226,9 +226,9 @@ class GPTGeneralWrapper(GPTWrapper):
             }
 
             # If there is at least one image, it should add
-            if len(images) > 0:
+            if len(images_for_vision) > 0:
                 multiple_images_content = []
-                for image in images:
+                for image in images_for_vision:
                     multiple_images_content.append(
                         {
                             'type': 'image_url',

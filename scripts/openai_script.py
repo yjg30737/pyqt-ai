@@ -62,7 +62,7 @@ class GPTAssistantWrapper(GPTWrapper):
         self._assistant_attributes = [
             {'name': 'Name', 'attribute': 'name', 'default': 'Math Tutor', 'type': 'text'},
             {'name': 'Instructions', 'attribute': 'instructions', 'default': 'You are a personal math tutor. Write and run code to answer math questions.', 'type': 'long_text'},
-            # {'name': 'Tools', 'attribute': 'tools', 'default': [{"type": "code_interpreter"}]},
+            {'name': 'Tools', 'attribute': 'tools', 'default': [{"type": "code_interpreter"}]},
             {'name': 'Model', 'attribute': 'model', 'default': 'gpt-4-0125-preview', 'selection': TEXT_MODELS, 'type': 'selection'},
          ]
         self._thread_attributes = [

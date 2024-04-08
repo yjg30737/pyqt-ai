@@ -6,7 +6,7 @@ from widgets.inputDialog import InputDialog
 
 
 class AddDelTableWidget(QWidget):
-    added = Signal()
+    added = Signal(dict)
 
     def __init__(self, lbl, columns):
         super().__init__()
@@ -61,6 +61,7 @@ class AddDelTableWidget(QWidget):
             self.__tableWidget.setCurrentCell(self.__tableWidget.rowCount() - 1, 0)
             for i, (attr, v) in enumerate(attrs.items()):
                 self.__tableWidget.setItem(self.__tableWidget.rowCount() - 1, i, QTableWidgetItem(v))
+            self.added.emit(attrs)
 
     def __delete(self):
         try:

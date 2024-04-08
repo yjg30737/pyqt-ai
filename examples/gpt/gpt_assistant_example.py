@@ -78,8 +78,8 @@ class MainWindow(QMainWindow):
         self.__assistantWidget = AddDelTableWidget('Assistant', self.__assistant_attr)
         self.__threadWidget = AddDelTableWidget('Thread', self.__thread_attr)
 
-        self.__assistantWidget.added.connect(self.__add)
-        self.__threadWidget.added.connect(self.__add)
+        self.__assistantWidget.added.connect(self.__addAssistant)
+        self.__threadWidget.added.connect(self.__addThread)
 
         lay = QHBoxLayout()
         lay.addWidget(self.__assistantWidget)
@@ -133,8 +133,13 @@ class MainWindow(QMainWindow):
         self.__chatBrowser.addMessage(self.__wrapper.get_message_obj('assistant', error))
         QMessageBox.critical(self, 'Error', error)
 
-    def __add(self, attr):
-        print('attr')
+    def __addAssistant(self, attr):
+        print(attr)
+        # self.__wrapper.init_assistant(**attr)
+
+    def __addThread(self, attr):
+        print(attr)
+        # self.__wrapper.set_thread(attr)
 
     def __finished(self):
         pass

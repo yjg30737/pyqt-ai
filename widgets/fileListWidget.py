@@ -1,156 +1,86 @@
-import os, posixpath
-from collections import defaultdict
+import os
+from pathlib import Path
 
-from qtpy.QtWidgets import QListWidgetItem, QAbstractItemView
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QVBoxLayout, QWidget, QListWidget, \
+    QLabel, QSizePolicy, QSpacerItem, QHBoxLayout, QPushButton, QDialog, QFileDialog
 
-from pyqt_files_already_exists_dialog import FilesAlreadyExistDialog
-from pyqt_tooltip_list_widget import ToolTipListWidget
+from widgets.imageView import ImageView
 
 
-class FileListWidget(ToolTipListWidget):
-    added = Signal(list)
-
-    def __init__(self):
+class FileListWidget(QWidget):
+    def __init__(self, lbl):
         super().__init__()
         self.__initVal()
-        self.__initUi()
+        self.__initUi(lbl)
 
     def __initVal(self):
-        self.__exists_dialog_not_ask_again_flag = False
-        self.__duplicate_flag = True
+        self.__extensions = ['.jpg', '.png']
 
-        self.__extensions = []
-        self.__basename_absname_dict = defaultdict(str)
-        self.__show_filename_only_flag = False
+    def __initUi(self, lbl):
+        self.__listWidget = QListWidget()
+        self.__listWidget.doubleClicked.connect(self.__showImage)
 
-    def __initUi(self):
-        self.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.__addRowBtn = QPushButton('Add')
+        self.__delRowBtn = QPushButton('Delete')
+
+        self.__addRowBtn.clicked.connect(self.__readingFiles)
+        self.__delRowBtn.clicked.connect(self.__delete)
+
+        lay = QHBoxLayout()
+        lay.addWidget(QLabel(lbl))
+        lay.addSpacerItem(QSpacerItem(10, 10, QSizePolicy.MinimumExpanding))
+        lay.addWidget(self.__addRowBtn)
+        lay.addWidget(self.__delRowBtn)
+        lay.setAlignment(Qt.AlignRight)
+        lay.setContentsMargins(0, 0, 0, 0)
+
+        menuWidget = QWidget()
+        menuWidget.setLayout(lay)
+
+        lay = QVBoxLayout()
+        lay.addWidget(menuWidget)
+        lay.addWidget(self.__listWidget)
+
+        self.setLayout(lay)
+
+        self.__toggle()
         self.setAcceptDrops(True)
 
-    def isDuplicateEnabled(self) -> bool:
-        return self.__duplicate_flag
+    def __toggle(self):
+        f = self.__listWidget.count() > 0
+        self.__delRowBtn.setEnabled(f)
 
-    def setDuplicateEnabled(self, f: bool):
-        self.__duplicate_flag = f
+    def getListWidget(self):
+        return self.__listWidget
 
-    def setExtensions(self, extensions: list):
-        self.__extensions = extensions
+    def __delete(self):
+        try:
+            self.__listWidget.takeItem(self.__listWidget.row(self.__listWidget.currentItem()))
+            self.__toggle()
+        except Exception as e:
+            print(e)
 
-    def __addFilename(self, filename: str):
-        basename = os.path.basename(filename)
-        self.__basename_absname_dict[basename] = filename
-        if self.isFilenameOnly():
-            self.addItem(basename)
-        else:
-            self.addItem(filename)
+    def __showImage(self):
+        self.__imageView = ImageView()
+        self.__imageView.setWindowModality(Qt.ApplicationModal)
+        self.__imageView.setWindowFlag(Qt.WindowStaysOnTopHint)
+        self.__imageView.setWindowFlag(Qt.WindowCloseButtonHint)
+        self.__imageView.setWindowTitle('View Image')
+        self.__imageView.setFilename(self.__listWidget.currentItem().text())
+        self.__imageView.show()
 
-    def __addFilenames(self, filenames: list, cur_filename: str = ''):
-        self.added.emit(filenames)
-        for filename in filenames:
-            self.__addFilename(filename)
-        self.__setCurrentFilename(filenames, cur_filename)
+    def __readingFiles(self):
+        filenames = QFileDialog.getOpenFileNames(self, 'Find', os.path.expanduser('~'),
+                                                 'Image Files (*.jpg, *.png)')
+        if filenames[0]:
+            filenames = filenames[0]
+            cur_file_extension = Path(filenames[0]).suffix
 
-    def __setCurrentFilename(self, filenames: list, cur_filename: str = ''):
-        cur_filename = filenames[0] if cur_filename == '' else cur_filename
-        items = self.findItems(cur_filename, Qt.MatchFixedString)
-        if items:
-            r = self.row(items[0])
-            self.setCurrentRow(r)
+            if cur_file_extension in self.__extensions:
+                self.__listWidget.addItems(filenames)
 
-    def __execDuplicateFilenamesDialog(self, duplicate_filenames: list):
-        dialog = FilesAlreadyExistDialog()
-        dialog.setDontAskAgainChecked(self.__exists_dialog_not_ask_again_flag)
-        dialog.setExistFiles(duplicate_filenames)
-        reply = dialog.exec()
-
-    def __getFilenamesInDirectory(self, dirname: str) -> list:
-        filenames = [os.path.join(dirname, filename).replace(os.path.sep, posixpath.sep) for filename in
-                     os.listdir(dirname)]
-        return filenames
-
-    def setDirectory(self, dirname: str, cur_filename: str = ''):
-        filenames = self.__getFilenamesInDirectory(dirname)
-        self.setFilenames(filenames, cur_filename)
-
-    def addDirectory(self, dirname: str, cur_filename: str = ''):
-        filenames = self.__getFilenamesInDirectory(dirname)
-        self.addFilenames(filenames, cur_filename)
-
-    def setFilenames(self, filenames: list, cur_filename: str = ''):
-        self.clear()
-        self.addFilenames(filenames, cur_filename=cur_filename)
-
-    def addFilenames(self, filenames: list, cur_filename: str = ''):
-        filenames = self.__getExtFilteredFiles(filenames)
-        if self.isDuplicateEnabled():
-            self.__addFilenames(filenames, cur_filename)
-        else:
-            duplicate_filenames, not_duplicate_filenames = self.__getDuplicateItems(filenames)
-            if duplicate_filenames:
-                self.__execDuplicateFilenamesDialog(duplicate_filenames)
-                self.__addFilenames(not_duplicate_filenames)
-            else:
-                self.__addFilenames(filenames)
-
-    def setFilenameOnly(self, f: bool):
-        self.__show_filename_only_flag = f
-        self.__execShowingBaseName(f)
-
-    def remove(self, item: QListWidgetItem):
-        filename = item.text()
-        self.takeItem(self.row(item))
-        self.__basename_absname_dict.pop(os.path.basename(filename))
-
-    def getSelectedFilenames(self) -> list:
-        items = self.selectedItems()
-        filenames = [item.text() for item in items]
-        return filenames
-
-    def removeSelectedRows(self):
-        items = self.selectedItems()
-        if items:
-            removed_start_idx = self.row(items[0])
-            cur_idx = removed_start_idx - 1
-            if removed_start_idx == 0:
-                cur_idx = 0
-            items = list(reversed(items))
-            for item in items:
-                self.remove(item)
-            self.setCurrentRow(cur_idx)
-
-    def clear(self):
-        for i in range(self.count() - 1, -1, -1):
-            self.remove(self.item(i))
-        super().clear()
-
-    def isFilenameOnly(self) -> bool:
-        return self.__show_filename_only_flag
-
-    # refactoring needed
-    def __getDuplicateItems(self, filenames: list):
-        exists_file_lst = []
-        not_exists_file_lst = []
-        filenames_to_find = filenames
-        for filename_to_find in filenames_to_find:
-            if self.isFilenameOnly():
-                items = self.findItems(os.path.basename(filename_to_find), Qt.MatchFixedString)
-            else:
-                items = self.findItems(filename_to_find, Qt.MatchFixedString)
-            if items:
-                exists_file_lst.append(filename_to_find)
-            else:
-                not_exists_file_lst.append(filename_to_find)
-        return exists_file_lst, not_exists_file_lst
-
-    def getAbsFilename(self, basename: str):
-        return self.__basename_absname_dict[basename]
-
-    def getFilenameFromRow(self, r: int) -> str:
-        if self.isFilenameOnly():
-            return self.getAbsFilename(self.item(r).text())
-        else:
-            return self.item(r).text()
+        self.__toggle()
 
     def __getExtFilteredFiles(self, lst):
         if len(self.__extensions) > 0:
@@ -171,19 +101,5 @@ class FileListWidget(ToolTipListWidget):
     def dropEvent(self, e):
         filenames = [file for file in self.__getExtFilteredFiles(
             self.__getUrlsFilenames(e.mimeData().urls())) if file]
-        self.addFilenames(filenames)
+        self.__listWidget.addItems(filenames)
         super().dropEvent(e)
-
-    def __execShowingBaseName(self, f: bool):
-        self.__show_filename_only_flag = f
-        items = [self.item(i) for i in range(self.count())]
-        if f:
-            for item in items:
-                absname = item.text()
-                basename = os.path.basename(absname)
-                item.setText(basename)
-        else:
-            for item in items:
-                basename = item.text()
-                absname = self.__basename_absname_dict[basename]
-                item.setText(absname)

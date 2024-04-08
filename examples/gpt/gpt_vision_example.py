@@ -13,14 +13,14 @@ sys.path.insert(0, os.getcwd())  # Add the current directory as well
 os.environ['QT_API'] = 'pyside6'
 
 from qtpy.QtGui import QGuiApplication, QFont, QIcon
-from qtpy.QtWidgets import QHBoxLayout, QApplication, QLineEdit, QSizePolicy, QVBoxLayout, QWidget, QMainWindow, QPushButton, QApplication
+from qtpy.QtWidgets import QHBoxLayout, QApplication, QLineEdit, QSizePolicy, QVBoxLayout, QWidget, QMainWindow, QSplitter, QPushButton, QApplication
 from qtpy.QtCore import Qt, QSettings, Signal, QCoreApplication, QThread, Slot
 
 from settings import ROOT_DIR
 
 from widgets.chatBrowser import ChatBrowser, PromptWidget
 from widgets.apiWidget import ApiWidget
-from widgets.listWidget import AddDelListWidget
+from widgets.fileListWidget import FileListWidget
 
 from scripts.openai_script import GPTGeneralWrapper
 
@@ -76,17 +76,26 @@ class MainWindow(QMainWindow):
         messages = self.__wrapper.get_conversations()
         self.__chatBrowser.setMessages(messages)
 
-        self.__fileListWidget = AddDelListWidget('Image Files')
+        self.__fileListWidget = FileListWidget('Image Files')
 
         lay = QVBoxLayout()
         lay.addWidget(self.__apiWidget)
         lay.addWidget(self.__chatBrowser)
-        lay.addWidget(self.__promptWidget)
         lay.addWidget(self.__fileListWidget)
+        lay.addWidget(self.__promptWidget)
         lay.setSpacing(0)
 
-        mainWidget = QWidget()
-        mainWidget.setLayout(lay)
+        rightWidget = QWidget()
+        rightWidget.setLayout(lay)
+
+        mainWidget = QSplitter()
+        mainWidget.addWidget(self.__fileListWidget)
+        mainWidget.addWidget(rightWidget)
+        mainWidget.setHandleWidth(1)
+        mainWidget.setChildrenCollapsible(False)
+        mainWidget.setSizes([500, 500])
+        mainWidget.setStyleSheet(
+            "QSplitterHandle {background-color: lightgray;}")
 
         self.setCentralWidget(mainWidget)
 

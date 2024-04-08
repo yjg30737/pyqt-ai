@@ -72,6 +72,30 @@ class GPTAssistantWrapper(GPTWrapper):
     def clear_assistant(self):
         self._db_handler.delete(Assistant)
 
+    def get_assistants(self, order='desc', limit=None):
+        return self._client.beta.assistants.list(order=order, limit=limit)
+
+    def update_assistant(self, assistant_id, name, instructions, tools, model):
+        assistant_obj = {"name": name,
+                         "instructions": instructions,
+                         "tools": tools,
+                         "model": model}
+
+        # Initialize assistant
+        self._client.beta.assistants.update(
+            assistant_id=assistant_id,
+            **assistant_obj
+        )
+
+        self._db_handler.update(Assistant, {"assistant_id": assistant_id}, assistant_obj)
+
+    def delete_assistant(self, assistant_id):
+        self._client.beta.assistants.delete(assistant_id=assistant_id)
+        self._db_handler.delete(Assistant, {"assistant_id": assistant_id})
+
+    def get_threads(self):
+        pass
+
     def init_assistant(self, name, instructions, tools, model):
         assistant_obj = {"name": name,
                          "instructions": instructions,

@@ -13,7 +13,7 @@ sys.path.insert(0, os.getcwd())  # Add the current directory as well
 os.environ['QT_API'] = 'pyside6'
 
 from qtpy.QtGui import QGuiApplication, QFont, QIcon
-from qtpy.QtWidgets import QHBoxLayout, QApplication, QLineEdit, QSizePolicy, QVBoxLayout, QWidget, QMainWindow, QPushButton, QApplication
+from qtpy.QtWidgets import QHBoxLayout, QApplication, QLineEdit, QSizePolicy, QVBoxLayout, QWidget, QMainWindow, QPushButton, QApplication, QMessageBox
 from qtpy.QtCore import Qt, QSettings, Signal, QCoreApplication, QThread
 
 from settings import ROOT_DIR

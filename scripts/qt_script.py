@@ -1,4 +1,4 @@
-from qtpy.QtWidgets import QFormLayout, QLineEdit, QSpinBox, QDoubleSpinBox, QCheckBox
+from qtpy.QtWidgets import QFormLayout, QLineEdit, QSpinBox, QDoubleSpinBox, QCheckBox, QComboBox
 
 
 def get_form_layout(attributes_list):
@@ -6,7 +6,7 @@ def get_form_layout(attributes_list):
     for i in range(len(attributes_list)):
         name = attributes_list[i]['name']
         value = attributes_list[i]['default']
-        selection = attributes_list[i]['selection']
+        selection = attributes_list[i].get('selection', [])
         widget = get_proper_widget_by_type(name, value, selection)
         lay.addRow(name, widget)
         # widget.textChanged.connect(self.__setAccept)
@@ -16,6 +16,7 @@ def get_form_layout(attributes_list):
 def get_proper_widget_by_type(name, value, selection):
     # If selecction is not empty
     if selection:
+        print('selection:', selection)
         widget = QComboBox()
         widget.addItems(selection)
     else:

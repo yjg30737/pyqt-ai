@@ -40,6 +40,9 @@ class GPTWrapper:
             print(e)
             return False
 
+    def get_message_obj(self, role, content):
+        return {"role": role, "content": content}
+
     def init_db(self, db_url):
         self._db_handler = GenericDBHandler(db_url)
 
@@ -184,9 +187,6 @@ class GPTGeneralWrapper(GPTWrapper):
 
         base64_image = encode_image(image_path)
         return f'data:image/jpeg;base64,{base64_image}'
-
-    def get_message_obj(self, role, content):
-        return {"role": role, "content": content}
 
     def get_arguments(
         self,

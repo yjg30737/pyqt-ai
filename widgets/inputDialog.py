@@ -1,4 +1,5 @@
-from qtpy.QtWidgets import QDialog, QFormLayout, QVBoxLayout, QLineEdit, QFrame, QPushButton, QHBoxLayout, QWidget
+from qtpy.QtWidgets import QDialog, QFormLayout, QVBoxLayout, QLineEdit, QFrame, QPushButton, QHBoxLayout, QWidget, \
+    QComboBox, QLineEdit, QSpinBox, QTextEdit, QDoubleSpinBox
 from qtpy.QtCore import Qt
 
 from scripts.qt_script import get_form_layout
@@ -71,9 +72,24 @@ class InputDialog(QDialog):
         # Get widgets in the form layout
         for i, obj in enumerate(self.__input_attr):
             widget = obj['widget']
-            if not widget.text().strip():
+            v = ''
+            if isinstance(widget, QComboBox) and widget.currentText().strip():
+                v = widget.currentText().strip()
+            elif isinstance(widget, QLineEdit) and widget.text().strip():
+                v = widget.text().strip()
+            elif isinstance(widget, QSpinBox) and widget.value():
+                v = widget.value()
+            elif isinstance(widget, QDoubleSpinBox) and widget.value():
+                v = widget.value()
+            elif isinstance(widget, QTextEdit) and widget.toPlainText().strip():
+                v = widget.toPlainText().strip()
+            elif isinstance(widget, QCheckBox) and widget.isChecked():
+                v = widget.isChecked()
+            elif isinstance(widget, QGroupBox):
+                v = self.__setAccept()
+            if not v:
                 self.__okBtn.setEnabled(False)
                 return
             else:
-                self.__output_attr[i] = widget.text()
+                self.__output_attr[obj['attribute']] = v
         self.__okBtn.setEnabled(True)

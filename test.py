@@ -126,7 +126,7 @@ class GPTAssistantWrapper(GPTWrapper):
         messages = self._client.beta.threads.messages.list(thread_id=self.__thread_id)
         message_data = messages.dict()["data"][0]
         content_data = message_data["content"][0]
-        return content_data['value']
+        return content_data
 
 
 class GPTGeneralWrapper(GPTWrapper):
@@ -266,11 +266,12 @@ db_url = 'sqlite:///conv.db'
 #         break
 #     print(wrapper.get_text_response(wrapper.get_arguments(cur_text=text)))
 
-wrapper = GPTAssistantWrapper(api_key=OPENAI_API_KEY, db_url=db_url)
+wrapper = GPTAssistantWrapper(api_key='', db_url=db_url)
 obj = {"name": "Math Tutor",
       "instructions": "You are a personal math tutor. Write and run code to answer math questions.",
       "tools": [{"type": "code_interpreter"}], # Only one type available
       "model": "gpt-4-0125-preview"}
 wrapper.init_assistant(**obj)
 wrapper.set_thread(name='ABC')
-wrapper.send_message(message_str="What is 2+2?", instructions='Please address the user as Jane Doe. The user has a premium account.')
+message = wrapper.send_message(message_str="What is 2+2?", instructions='Please address the user as Jane Doe. The user has a premium account.')
+print(message)

@@ -1,105 +1,93 @@
 import os
 from pathlib import Path
-
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QVBoxLayout, QWidget, QListWidget, \
-    QLabel, QSizePolicy, QSpacerItem, QHBoxLayout, QPushButton, QDialog, QFileDialog
+from qtpy.QtWidgets import QVBoxLayout, QWidget, QListWidget, QLabel, QSizePolicy, QSpacerItem, QHBoxLayout, QPushButton, QFileDialog
 
 from widgets.imageView import ImageView
 
-
 class FileListWidget(QWidget):
-    def __init__(self, lbl):
+    def __init__(self, label):
         super().__init__()
-        self.__initVal()
-        self.__initUi(lbl)
+        self._init_values()
+        self._init_ui(label)
 
-    def __initVal(self):
-        self.__extensions = ['.jpg', '.png']
+    def _init_values(self):
+        self.supported_extensions = ['.jpg', '.png']
 
-    def __initUi(self, lbl):
-        self.__listWidget = QListWidget()
-        self.__listWidget.doubleClicked.connect(self.__showImage)
-
-        self.__addRowBtn = QPushButton('Add')
-        self.__delRowBtn = QPushButton('Delete')
-
-        self.__addRowBtn.clicked.connect(self.__readingFiles)
-        self.__delRowBtn.clicked.connect(self.__delete)
-
-        lay = QHBoxLayout()
-        lay.addWidget(QLabel(lbl))
-        lay.addSpacerItem(QSpacerItem(10, 10, QSizePolicy.MinimumExpanding))
-        lay.addWidget(self.__addRowBtn)
-        lay.addWidget(self.__delRowBtn)
-        lay.setAlignment(Qt.AlignRight)
-        lay.setContentsMargins(0, 0, 0, 0)
-
-        menuWidget = QWidget()
-        menuWidget.setLayout(lay)
-
-        lay = QVBoxLayout()
-        lay.addWidget(menuWidget)
-        lay.addWidget(self.__listWidget)
-
-        self.setLayout(lay)
-
-        self.__toggle()
+    def _init_ui(self, label):
+        self._setup_list_widget()
+        self._setup_buttons()
+        self._setup_layout(label)
+        self._toggle_delete_button()
         self.setAcceptDrops(True)
 
-    def __toggle(self):
-        f = self.__listWidget.count() > 0
-        self.__delRowBtn.setEnabled(f)
+    def _setup_list_widget(self):
+        self.list_widget = QListWidget()
+        self.list_widget.doubleClicked.connect(self._show_image)
 
-    def getListWidget(self):
-        return self.__listWidget
+    def _setup_buttons(self):
+        self.add_button = QPushButton('Add')
+        self.delete_button = QPushButton('Delete')
+        self.add_button.clicked.connect(self._read_files)
+        self.delete_button.clicked.connect(self._delete_selected_item)
 
-    def __delete(self):
+    def _setup_layout(self, label):
+        header_layout = self._create_header_layout(label)
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(header_layout)
+        main_layout.addWidget(self.list_widget)
+        self.setLayout(main_layout)
+
+    def _create_header_layout(self, label):
+        layout = QHBoxLayout()
+        layout.addWidget(QLabel(label))
+        layout.addSpacerItem(QSpacerItem(10, 10, QSizePolicy.MinimumExpanding))
+        layout.addWidget(self.add_button)
+        layout.addWidget(self.delete_button)
+        layout.setAlignment(Qt.AlignRight)
+        layout.setContentsMargins(0, 0, 0, 0)
+        header_widget = QWidget()
+        header_widget.setLayout(layout)
+        return header_widget
+
+    def _toggle_delete_button(self):
+        self.delete_button.setEnabled(self.list_widget.count() > 0)
+
+    def _delete_selected_item(self):
         try:
-            self.__listWidget.takeItem(self.__listWidget.row(self.__listWidget.currentItem()))
-            self.__toggle()
+            self.list_widget.takeItem(self.list_widget.row(self.list_widget.currentItem()))
+            self._toggle_delete_button()
         except Exception as e:
             print(e)
 
-    def __showImage(self):
-        self.__imageView = ImageView()
-        self.__imageView.setWindowModality(Qt.ApplicationModal)
-        self.__imageView.setWindowFlag(Qt.WindowStaysOnTopHint)
-        self.__imageView.setWindowFlag(Qt.WindowCloseButtonHint)
-        self.__imageView.setWindowTitle('View Image')
-        self.__imageView.setFilename(self.__listWidget.currentItem().text())
-        self.__imageView.show()
+    def _show_image(self):
+        self.__image_viewer = ImageView()
+        self.__image_viewer.setWindowFlag(Qt.WindowStaysOnTopHint)
+        self.__image_viewer.setWindowFlag(Qt.WindowCloseButtonHint)
+        self.__image_viewer.setWindowTitle('View Image')
+        self.__image_viewer.setFilename(self.list_widget.currentItem().text())
+        self.__image_viewer.show()
 
-    def __readingFiles(self):
-        filenames = QFileDialog.getOpenFileNames(self, 'Find', os.path.expanduser('~'),
-                                                 'Image Files (*.jpg, *.png)')
-        if filenames[0]:
-            filenames = filenames[0]
-            cur_file_extension = Path(filenames[0]).suffix
+    def _read_files(self):
+        file_dialog = QFileDialog(self, 'Find', os.path.expanduser('~'), 'Image Files (*.jpg *.png)')
+        selected_files, _ = file_dialog.getOpenFileNames()
+        if selected_files:
+            for filename in selected_files:
+                if Path(filename).suffix in self.supported_extensions:
+                    self.list_widget.addItem(filename)
+        self._toggle_delete_button()
 
-            if cur_file_extension in self.__extensions:
-                self.__listWidget.addItems(filenames)
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
 
-        self.__toggle()
-
-    def __getExtFilteredFiles(self, lst):
-        if len(self.__extensions) > 0:
-            return list(filter(None, map(lambda x: x if os.path.splitext(x)[-1] in self.__extensions else None, lst)))
-        else:
-            return lst
-
-    def __getUrlsFilenames(self, urls):
-        return list(map(lambda x: x.path()[1:], urls))
-
-    def dragEnterEvent(self, e):
-        if e.mimeData().hasUrls():
-            e.accept()
-
-    def dragMoveEvent(self, e):
+    def dragMoveEvent(self, event):
         pass
 
-    def dropEvent(self, e):
-        filenames = [file for file in self.__getExtFilteredFiles(
-            self.__getUrlsFilenames(e.mimeData().urls())) if file]
-        self.__listWidget.addItems(filenames)
-        super().dropEvent(e)
+    def dropEvent(self, event):
+        files = [url.toLocalFile() for url in event.mimeData().urls() if Path(url.toLocalFile()).suffix in self.supported_extensions]
+        self.list_widget.addItems(files)
+        super().dropEvent(event)
+
+    def get_filenames(self):
+        return [self.list_widget.item(i).text() for i in range(self.list_widget.count())]

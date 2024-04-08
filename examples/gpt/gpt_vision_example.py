@@ -13,7 +13,7 @@ sys.path.insert(0, os.getcwd())  # Add the current directory as well
 os.environ['QT_API'] = 'pyside6'
 
 from qtpy.QtGui import QGuiApplication, QFont, QIcon
-from qtpy.QtWidgets import QHBoxLayout, QApplication, QLineEdit, QSizePolicy, QVBoxLayout, QWidget, QMainWindow, QSplitter, QPushButton, QApplication
+from qtpy.QtWidgets import QHBoxLayout, QApplication, QLineEdit, QSizePolicy, QMessageBox, QVBoxLayout, QWidget, QMainWindow, QSplitter, QPushButton, QApplication
 from qtpy.QtCore import Qt, QSettings, Signal, QCoreApplication, QThread, Slot
 
 from settings import ROOT_DIR
@@ -31,14 +31,15 @@ class Thread(QThread):
     afterGenerated = Signal(dict)
     errorGenerated = Signal(str)
 
-    def __init__(self, wrapper, text):
+    def __init__(self, wrapper, text, images):
         super(Thread, self).__init__()
         self.__wrapper = wrapper
         self.__text = text
+        self.__images = images
 
     def run(self):
         try:
-            args = self.__wrapper.get_arguments(cur_text=self.__text)
+            args = self.__wrapper.get_arguments(model='gpt-4-vision-preview', cur_text=self.__text, images_for_vision=self.__images)
             response = self.__wrapper.get_text_response(args)
             self.afterGenerated.emit(response)
         except Exception as e:
@@ -103,8 +104,8 @@ class MainWindow(QMainWindow):
 
     def __run(self, text):
         self.__chatBrowser.addMessage(self.__wrapper.get_message_obj('user', text))
-
-        self.__t = Thread(self.__wrapper, text)
+        images = self.__fileListWidget.get_filenames()
+        self.__t = Thread(self.__wrapper, text, images)
         self.__t.started.connect(self.__started)
         self.__t.afterGenerated.connect(self.__afterGenerated)
         self.__t.errorGenerated.connect(self.__errorGenerated)

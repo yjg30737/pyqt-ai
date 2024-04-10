@@ -50,7 +50,7 @@ class MainWindow(QMainWindow):
         self.__initUi()
 
     def __initVal(self):
-        self.__settings_ini = QSettings(os.path.join(ROOT_DIR, 'gpt_assistant_example.ini'), QSettings.IniFormat)
+        self.__settings_ini = QSettings(os.path.join(ROOT_DIR, 'settings.ini'), QSettings.IniFormat)
         if not self.__settings_ini.contains('API_KEY'):
             self.__settings_ini.setValue('API_KEY', '')
         self.__api_key = self.__settings_ini.value('API_KEY', type=str)
@@ -117,10 +117,20 @@ class MainWindow(QMainWindow):
         self.__setAiEnabled(f)
 
     def __setAiEnabled(self, f):
+        self.__assistantWidget.setEnabled(f)
+        self.__threadWidget.setEnabled(f)
+        self.__promptWidget.setEnabled(f)
+
         if f:
-            self.__promptWidget.setEnabled(True)
-        else:
-            self.__promptWidget.setEnabled(False)
+            # Get assistant list from the server
+            assistants = self.__wrapper.get_assistants()
+            for assistant in assistants.data:
+                print(assistant.name)
+                print(assistant.id)
+                print(assistant.instructions)
+                print(assistant.model)
+                print(assistant.tools)
+            # self.__assistantWidget.addAttrs(assistants)
 
     def __started(self):
         pass

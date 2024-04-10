@@ -57,11 +57,18 @@ class AddDelTableWidget(QWidget):
         reply = dialog.exec()
         if reply == QDialog.Accepted:
             attrs = dialog.getAttributes()
-            self.__tableWidget.insertRow(self.__tableWidget.rowCount())
-            self.__tableWidget.setCurrentCell(self.__tableWidget.rowCount() - 1, 0)
-            for i, (attr, v) in enumerate(attrs.items()):
-                self.__tableWidget.setItem(self.__tableWidget.rowCount() - 1, i, QTableWidgetItem(v))
+            self.addAttrs(attrs)
+            # self.__tableWidget.insertRow(self.__tableWidget.rowCount())
+            # self.__tableWidget.setCurrentCell(self.__tableWidget.rowCount() - 1, 0)
+            # for i, (attr, v) in enumerate(attrs.items()):
+            #     self.__tableWidget.setItem(self.__tableWidget.rowCount() - 1, i, QTableWidgetItem(v))
             self.added.emit(attrs)
+
+    def addAttrs(self, attrs):
+        self.__tableWidget.insertRow(self.__tableWidget.rowCount())
+        self.__tableWidget.setCurrentCell(self.__tableWidget.rowCount() - 1, 0)
+        for i, (attr, v) in enumerate(attrs.items()):
+            self.__tableWidget.setItem(self.__tableWidget.rowCount() - 1, i, QTableWidgetItem(v))
 
     def __delete(self):
         try:

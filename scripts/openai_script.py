@@ -6,7 +6,6 @@ import datetime
 
 from openai import OpenAI
 
-from settings import OPENAI_API_KEY
 from scripts.db_handler import GenericDBHandler, Conversation, Assistant, Thread
 
 TEXT_MODELS = ['gpt-4-0125-preview', 'gpt-4', 'gpt-4-1106-preview', 'gpt-4-vision-preview',
@@ -65,8 +64,12 @@ class GPTAssistantWrapper(GPTWrapper):
             {'name': 'Tools', 'attribute': 'tools', 'default': [{"type": "code_interpreter"}]},
             {'name': 'Model', 'attribute': 'model', 'default': 'gpt-4-0125-preview', 'selection': TEXT_MODELS, 'type': 'selection'},
          ]
+        # Thread attributes
+        # Each attribute below is metadata for the thread rather than the official thread attributes
         self._thread_attributes = [
             {'name': 'Name', 'attribute': 'name', 'default': 'ABC', 'type': 'text'},
+            {'name': 'Created', 'attribute': 'created_date', 'default': 'ABC', 'type': 'text'},
+            {'name': 'Last Modified', 'attribute': 'modified_date', 'default': 'ABC', 'type': 'text'},
         ]
 
     def clear_assistant(self):

@@ -5,6 +5,7 @@ from qtpy.QtWidgets import QVBoxLayout, QWidget, QListWidget, QLabel, QSizePolic
 
 from widgets.imageView import ImageView
 
+
 class FileListWidget(QWidget):
     def __init__(self, label):
         super().__init__()

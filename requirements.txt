@@ -11,6 +11,5 @@ sqlalchemy
 psycopg2
 
 # ETC
-python-dotenv
 requests
 

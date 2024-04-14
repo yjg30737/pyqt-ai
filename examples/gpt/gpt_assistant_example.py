@@ -125,12 +125,19 @@ class MainWindow(QMainWindow):
             # Get assistant list from the server
             assistants = self.__wrapper.get_assistants()
             for assistant in assistants.data:
-                print(assistant.name)
-                print(assistant.id)
-                print(assistant.instructions)
-                print(assistant.model)
-                print(assistant.tools)
-            # self.__assistantWidget.addAttrs(assistants)
+            #     print(assistant.json)
+                obj = {
+                    'name': assistant.name,
+                    'instructions': assistant.instructions,
+                    # 'tools': assistant.tools,
+                    'model': assistant.model,
+                }
+            #     # print(assistant.id)
+            #     # print(assistant.instructions)
+            #     # print(assistant.model)
+                print(dir(assistant.tools[0]))
+
+                self.__assistantWidget.addAttrs(obj)
 
     def __started(self):
         pass

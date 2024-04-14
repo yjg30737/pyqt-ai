@@ -16,6 +16,7 @@ IMAGE_MODELS = ['dall-e-3']
 class GPTWrapper:
     def __init__(self, api_key=None, db_url='sqlite:///conv.db'):
         super().__init__()
+        self._client = None
         # Initialize OpenAI client
         if api_key:
             self._client = OpenAI(api_key=api_key)
@@ -76,6 +77,8 @@ class GPTAssistantWrapper(GPTWrapper):
         self._db_handler.delete(Assistant)
 
     def get_assistants(self, order='desc', limit=None):
+        if self._client is None:
+            return None
         return self._client.beta.assistants.list(order=order, limit=limit)
 
     def update_assistant(self, assistant_id, name, instructions, tools, model):

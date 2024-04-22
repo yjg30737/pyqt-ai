@@ -10,6 +10,14 @@ openai
 sqlalchemy
 psycopg2
 
+# llamaindex
+llama-index
+langchain
+pillow
+
+# replicate
+replicate
+
 # ETC
 requests
 

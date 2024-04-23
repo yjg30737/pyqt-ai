@@ -11,8 +11,9 @@ project_root = os.path.dirname(os.path.dirname(script_path))
 sys.path.insert(0, project_root)
 sys.path.insert(0, os.getcwd())  # Add the current directory as well
 
-from qtpy.QtWidgets import QLineEdit, QVBoxLayout, QComboBox, QSpinBox, QTextEdit, QMessageBox, QWidget, QMainWindow, QPushButton, QApplication
-from qtpy.QtCore import QSettings, Signal, QThread
+from qtpy.QtWidgets import QLineEdit, QVBoxLayout, QFormLayout, QScrollArea, \
+    QSplitter, QGroupBox, QComboBox, QSpinBox, QSizePolicy, QTextEdit, QMessageBox, QWidget, QMainWindow, QPushButton, QApplication
+from qtpy.QtCore import QSettings, Signal, QThread, Qt
 from qtpy.QtGui import QFont, QIcon
 
 from settings import ROOT_DIR
@@ -67,8 +68,10 @@ class MainWindow(QMainWindow):
     def __initUi(self):
         self.setWindowTitle('PyQt Replicate Example')
 
-        self.__apiWidget = ApiWidget(self.__api_key, self.__wrapper, self.__settings_ini)
+        self.__apiWidget = ApiWidget(self.__api_key, self.__wrapper, self.__settings_ini, 'REPLICATE_API_TOKEN', True)
         self.__apiWidget.apiKeyAccepted.connect(self.__api_key_accepted)
+        self.__apiWidget.notCheckApi()
+
         self.__imageWidget = ImageView()
 
         self.__modelCmbBox = QComboBox()
@@ -76,6 +79,9 @@ class MainWindow(QMainWindow):
         self.__heightSpinBox = QSpinBox()
         self.__promptWidget = QTextEdit()
         self.__negativePromptWidget = QTextEdit()
+
+        self.__promptWidget.setMaximumHeight(100)
+        self.__negativePromptWidget.setMaximumHeight(100)
 
         lay = QFormLayout()
         lay.addRow('Model', self.__modelCmbBox)
@@ -91,17 +97,32 @@ class MainWindow(QMainWindow):
         self.__btn.clicked.connect(self.__run)
 
         lay = QVBoxLayout()
-        lay.addWidget(self.__apiWidget)
-        lay.addWidget(self.__promptWidget)
         lay.addWidget(self.__btn)
         lay.addWidget(self.__imageWidget)
+
+        rightWidget = QWidget()
+        rightWidget.setLayout(lay)
+
+        splitter = QSplitter()
+        splitter.addWidget(optionGrpBox)
+        splitter.addWidget(rightWidget)
+        splitter.setHandleWidth(1)
+        splitter.setChildrenCollapsible(False)
+        splitter.setSizes([500, 500])
+        splitter.setStyleSheet(
+            "QSplitterHandle {background-color: lightgray;}")
+        splitter.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+
+        lay = QVBoxLayout()
+        lay.addWidget(self.__apiWidget)
+        lay.addWidget(splitter)
 
         mainWidget = QWidget()
         mainWidget.setLayout(lay)
 
         self.setCentralWidget(mainWidget)
 
-        self.__setAiEnabled(self.__wrapper.is_gpt_available())
+        self.__setAiEnabled(self.__wrapper.is_available())
 
     def __run(self):
         prompt = self.__promptWidget.text()

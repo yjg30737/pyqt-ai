@@ -84,7 +84,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(mainWidget)
 
-        self.__setAiEnabled(self.__wrapper.is_gpt_available())
+        self.__setAiEnabled(self.__wrapper.is_available())
 
     def __run(self, text):
         self.__chatBrowser.addMessage(self.__wrapper.get_message_obj('user', text))

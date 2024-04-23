@@ -5,14 +5,11 @@ import json
 from PIL import Image
 from urllib.request import urlretrieve
 
-os.environ['REPLICATE_API_TOKEN'] = 'my_token'
-
 # Replicate에서 일일이 모든 리스트를 로딩하는 것보다는
 # 단지 몇 가지 인기있는 모델만 가져오는 것이 좋다.
 
 # 일단 디폴트로 몇 가지 우리가 모델을 추가하고
 # 사용자가 직접 지정할 수 있도록 우리가 링크를 제공해 주는 방법을 쓰는 것이 좋다.
-
 
 # Comment out the following line if you want to see full logs
 # model_attr = [
@@ -107,7 +104,18 @@ class ReplicateWrapper:
         self.__api_key = api_key
 
     def set_api(self, api_key):
+        """
+        True all the time
+        There is no way to know if the api key is valid or not
+        :param api_key:
+        :return:
+        """
         self.__api_key = api_key
+        os.environ['REPLICATE_API_TOKEN'] = self.__api_key
+        return True
+
+    def is_available(self):
+        return True if self.__api_key is not None else False
 
     def get_image_response(self, model, input_args):
         model = "lucataco/playground-v2.5-1024px-aesthetic:419269784d9e00c56e5b09747cfc059a421e0c044d5472109e129b746508c365" if model is None else model

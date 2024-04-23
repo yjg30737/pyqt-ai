@@ -17,20 +17,20 @@ class GPTWrapper:
         # Initialize OpenAI client
         if api_key:
             self._client = OpenAI(api_key=api_key)
-        self._is_gpt_available = True if api_key else False
+        self._is_available = True if api_key else False
         self._db_handler = ''
         self.init_db(db_url)
 
-    def is_gpt_available(self):
-        return self._is_gpt_available
+    def is_available(self):
+        return self._is_available
 
     def set_api(self, api_key):
         response = requests.get('https://api.openai.com/v1/models', headers={'Authorization': f'Bearer {api_key}'})
-        self._is_gpt_available = response.status_code == 200
-        if self._is_gpt_available:
+        self._is_available = response.status_code == 200
+        if self._is_available:
             self._api_key = api_key
             self._client = OpenAI(api_key=api_key)
-        return self._is_gpt_available
+        return self._is_available
 
     def init_db(self, db_url):
         self._db_handler = GenericDBHandler(db_url)
@@ -242,7 +242,7 @@ class GPTGeneralWrapper(GPTWrapper):
 
     def get_text_response(self, openai_arg):
         try:
-            if self.is_gpt_available():
+            if self.is_available():
                 response = self._client.chat.completions.create(**openai_arg)
                 response_content = response.choices[0].message.content
                 self._db_handler.append(Conversation, self.get_message_obj('assistant', response_content))
@@ -259,7 +259,7 @@ class GPTGeneralWrapper(GPTWrapper):
         """, n=1, style='vivid', size='1024x1024', response_format='b64_json'):
             image_data = ''
             try:
-                if self.is_gpt_available():
+                if self.is_available():
                     response = self._client.images.generate(
                         model=model,
                         prompt=prompt,

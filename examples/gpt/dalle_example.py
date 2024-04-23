@@ -79,7 +79,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(mainWidget)
 
-        self.__setAiEnabled(self.__wrapper.is_gpt_available())
+        self.__setAiEnabled(self.__wrapper.is_available())
 
     def __run(self):
         prompt = self.__promptWidget.text()

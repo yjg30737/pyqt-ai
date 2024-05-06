@@ -57,80 +57,21 @@ class GPTAssistantWrapper(GPTWrapper):
     def __init__(self, api_key=None, db_url='sqlite:///conv.db'):
         super().__init__(api_key=api_key, db_url=db_url)
         self.__assistant_id = None
-        self.__thread_id = None
-        self.__run_id = None
-        self._assistant_attributes = [
-            {'name': 'Name', 'attribute': 'name', 'default': 'Math Tutor', 'type': 'text'},
-            {'name': 'Instructions', 'attribute': 'instructions', 'default': 'You are a personal math tutor. Write and run code to answer math questions.', 'type': 'long_text'},
-            {'name': 'Tools', 'attribute': 'tools', 'default': [{"type": "code_interpreter"}]},
-            {'name': 'Model', 'attribute': 'model', 'default': 'gpt-4-0125-preview', 'selection': TEXT_MODELS, 'type': 'selection'},
-         ]
-        # Thread attributes
-        # Each attribute below is metadata for the thread rather than the official thread attributes
-        self._thread_attributes = [
-            {'name': 'Name', 'attribute': 'name', 'default': 'ABC', 'type': 'text'},
-            {'name': 'Created', 'attribute': 'created_date', 'default': 'ABC', 'type': 'text'},
-            {'name': 'Last Modified', 'attribute': 'modified_date', 'default': 'ABC', 'type': 'text'},
-        ]
-
-    def clear_assistant(self):
-        self._db_handler.delete(Assistant)
+        self.__assistants = []
 
     def get_assistants(self, order='desc', limit=None):
         if self._client is None:
             return None
-        return self._client.beta.assistants.list(order=order, limit=limit)
-
-    def update_assistant(self, assistant_id, name, instructions, tools, model):
-        assistant_obj = {"name": name,
-                         "instructions": instructions,
-                         "tools": tools,
-                         "model": model}
-
-        # Initialize assistant
-        self._client.beta.assistants.update(
-            assistant_id=assistant_id,
-            **assistant_obj
-        )
-
-        self._db_handler.update(Assistant, {"assistant_id": assistant_id}, assistant_obj)
-
-    def delete_assistant(self, assistant_id):
-        self._client.beta.assistants.delete(assistant_id=assistant_id)
-        self._db_handler.delete(Assistant, {"assistant_id": assistant_id})
-
-    def get_threads(self):
-        pass
-
-    def init_assistant(self, name, instructions, tools, model):
-        assistant_obj = {"name": name,
-                         "instructions": instructions,
-                         "tools": tools,
-                         "model": model}
-
-        # Search row with name
-        assistant = self._db_handler.query_table(Assistant, {"name": name})
-        if assistant:
-            self.__assistant_id = assistant[0].assistant_id
-            print(f"Assistant {name} already exists")
-        else:
-            # Initialize assistant
-            assistant = self._client.beta.assistants.create(
-                **assistant_obj
-            )
-
-            self.__assistant_id = assistant.id
-
-            assistant_obj = {
-                "assistant_id": self.__assistant_id,
-                "name": name,
-                "instructions": instructions,
-                "tools": tools[0]['type'],
-                "model": model,
-                "timestamp": datetime.datetime.fromtimestamp(assistant.created_at),
-            }
-
-            self._db_handler.append(Assistant, assistant_obj)
+        assistants = self._client.beta.assistants.list(order=order, limit=limit)
+        assistants = [{
+            "assistant_id": assistant.id,
+            "name": assistant.name,
+            "instructions": assistant.instructions,
+            "tools": assistant.tools,
+            "model": assistant.model,
+        } for assistant in assistants]
+        self.__assistants = assistants
+        return self.__assistants
 
     def set_thread(self, name):
         if self.__assistant_id is None:
@@ -178,36 +119,10 @@ class GPTAssistantWrapper(GPTWrapper):
         content_data = message_data["content"][0]
         print(content_data)
 
-    def get_assistant_attributes(self):
-        return self._assistant_attributes
-
-    def get_thread_attributes(self):
-        return self._thread_attributes
-
 
 class GPTGeneralWrapper(GPTWrapper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._text_attributes = [
-            {'name': 'Model', 'attribute': 'model', 'default': 'gpt-4-0125-preview', 'type': 'selection',
-             'selection': TEXT_MODELS },
-            {'name': 'System', 'attribute': 'system', 'default': 'You are a very helpful assistant.', 'type': 'long_text'},
-            {'name': 'N', 'attribute': 'n', 'default': 1, 'min': 1, 'max': 10, 'type': 'number'},
-            # {'name': 'Temperature', 'attribute': 'temperature', 'default': 1},
-            # {'name': 'Top P', 'attribute': 'top_p', 'default': 1},
-            # {'name': 'Frequency Penalty', 'attribute': 'frequency_penalty', 'default': 0},
-            # {'name': 'Presence Penalty', 'attribute': 'presence_penalty', 'default': 0},
-            {'name': 'Response Format', 'attribute': 'response_format', 'default': 'text', 'selection': ['text', 'json_mode'], 'type': 'selection'},
-            {'name': 'Stream', 'attribute': 'stream', 'default': False, 'type': 'boolean'},
-        ]
-        self._image_attributes = [
-            {'name': 'Model', 'attribute': 'model', 'default': 'dall-e-3', 'selection': IMAGE_MODELS, 'type': 'selection'},
-            {'name': 'Prompt', 'attribute': 'prompt', 'default': 'Photorealistic,\nClose-up portrait of a person for an ID card, neutral background, professional attire, clear facial features, eye-level shot, soft lighting to highlight details without harsh shadows, high resolution for print quality --ar 1:1'},
-            {'name': 'N', 'attribute': 'n', 'default': 1, 'min': 1, 'max': 4, 'type': 'number'},
-            {'name': 'Style', 'attribute': 'style', 'default': 'vivid'},
-            {'name': 'Size', 'attribute': 'size', 'default': '1024x1024'},
-            {'name': 'Response Format', 'attribute': 'response_format', 'default': 'b64_json'},
-        ]
 
     def get_image_url_from_local(self, image_path):
         # Function to encode the image
@@ -327,12 +242,6 @@ class GPTGeneralWrapper(GPTWrapper):
             except Exception as e:
                 print(e)
                 raise Exception(e)
-
-    def get_text_attributes(self):
-        return self._text_attributes
-
-    def get_image_attributes(self):
-        return self._image_attributes
 
 def is_gpt_vision(model: str):
     return model == 'gpt-4-vision-preview'

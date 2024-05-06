@@ -1,77 +1,49 @@
-from qtpy.QtCore import Qt, Signal
-from qtpy.QtWidgets import QVBoxLayout, QWidget, QTableWidget, \
-    QLabel, QSizePolicy, QSpacerItem, QHBoxLayout, QPushButton, QTableWidgetItem, QDialog, QFormLayout
-
-from widgets.inputDialog import InputDialog
+from qtpy.QtWidgets import QTableWidget, QTableWidgetItem
+from qtpy.QtCore import Signal
 
 
-class AddDelTableWidget(QWidget):
-    added = Signal(dict)
+class TableWidget(QTableWidget):
+    selectedRecord = Signal(dict)
 
-    def __init__(self, lbl, columns):
-        super().__init__()
+    def __init__(self, parent=None, columns=None):
+        super(TableWidget, self).__init__(parent)
         self.__initVal(columns)
-        self.__initUi(lbl)
+        self.__initUi(columns)
 
-    def __initVal(self, columns):
-        self.__columns = columns
+    def __initVal(self, columns=None):
+        self.__column_map = {key: index for index, key in enumerate(columns)}
 
-    def __initUi(self, lbl):
-        columns = [obj['name'] for obj in self.__columns]
+    def __initUi(self, columns):
+        self.setColumnCount(len(columns))
+        self.horizontalHeader().setStretchLastSection(True)
+        self.verticalHeader().setVisible(False)
+        self.setHorizontalHeaderLabels(columns)
+        self.setEditTriggers(self.NoEditTriggers)
+        self.setSelectionBehavior(self.SelectRows)
+        self.itemSelectionChanged.connect(self.__onSelectionChanged)
 
-        self.__tableWidget = QTableWidget()
-        self.__tableWidget.setColumnCount(len(self.__columns))
-        self.__tableWidget.horizontalHeader().setStretchLastSection(True)
-        self.__tableWidget.verticalHeader().setVisible(False)
-        self.__tableWidget.setHorizontalHeaderLabels(columns)
+    def addRecord(self, record):
+        row_position = self.rowCount()
+        self.insertRow(row_position)
+        for key, value in record.items():
+            if key in self.__column_map:
+                column_index = self.__column_map[key]
+                # For the 'tools' column, which contains a list, convert it to a string representation
+                if key == 'tools':
+                    value = str(value)
+                self.setItem(row_position, column_index, QTableWidgetItem(str(value)))
 
-        self.__addRowBtn = QPushButton('Add')
-        self.__delRowBtn = QPushButton('Delete')
+    def getRecord(self, row):
+        record = {}
+        for key, index in self.__column_map.items():
+            if self.item(row, index) is not None:
+                record[key] = self.item(row, index).text()
+            else:
+                record[key] = ''
+        return record
 
-        self.__addRowBtn.clicked.connect(self.__add)
-        self.__delRowBtn.clicked.connect(self.__delete)
-
-        lay = QHBoxLayout()
-        lay.addWidget(QLabel(lbl))
-        lay.addSpacerItem(QSpacerItem(10, 10, QSizePolicy.MinimumExpanding))
-        lay.addWidget(self.__addRowBtn)
-        lay.addWidget(self.__delRowBtn)
-        lay.setAlignment(Qt.AlignRight)
-        lay.setContentsMargins(0, 0, 0, 0)
-
-        menuWidget = QWidget()
-        menuWidget.setLayout(lay)
-
-        lay = QVBoxLayout()
-        lay.addWidget(menuWidget)
-        lay.addWidget(self.__tableWidget)
-        lay.setContentsMargins(0, 0, 0, 0)
-
-        self.setLayout(lay)
-
-    def getTableWidget(self):
-        return self.__tableWidget
-
-    def __add(self):
-        dialog = InputDialog('Add', self.__columns, self)
-        reply = dialog.exec()
-        if reply == QDialog.Accepted:
-            attrs = dialog.getAttributes()
-            self.addAttrs(attrs)
-            # self.__tableWidget.insertRow(self.__tableWidget.rowCount())
-            # self.__tableWidget.setCurrentCell(self.__tableWidget.rowCount() - 1, 0)
-            # for i, (attr, v) in enumerate(attrs.items()):
-            #     self.__tableWidget.setItem(self.__tableWidget.rowCount() - 1, i, QTableWidgetItem(v))
-            self.added.emit(attrs)
-
-    def addAttrs(self, attrs):
-        self.__tableWidget.insertRow(self.__tableWidget.rowCount())
-        self.__tableWidget.setCurrentCell(self.__tableWidget.rowCount() - 1, 0)
-        for i, (attr, v) in enumerate(attrs.items()):
-            self.__tableWidget.setItem(self.__tableWidget.rowCount() - 1, i, QTableWidgetItem(v))
-
-    def __delete(self):
-        try:
-            self.__tableWidget.removeRow(self.__tableWidget.currentRow())
-        except Exception as e:
-            print(e)
+    def __onSelectionChanged(self):
+        selected_row = self.currentRow()
+        if selected_row != -1:
+            record = self.getRecord(selected_row)
+            self.selectedRecord.emit(record)

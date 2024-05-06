@@ -1,5 +1,4 @@
-import os
-import sys
+import os, sys
 
 # Get the absolute path of the current script file
 script_path = os.path.abspath(__file__)
@@ -10,37 +9,29 @@ project_root = os.path.dirname(os.path.dirname(script_path))
 sys.path.insert(0, project_root)
 sys.path.insert(0, os.getcwd())  # Add the current directory as well
 
-os.environ['QT_API'] = 'pyside6'
+from qtpy.QtWidgets import QMainWindow, QPushButton, QApplication, QVBoxLayout, QWidget, QLabel
+from qtpy.QtCore import Qt, QSettings, QCoreApplication, QThread
+from qtpy.QtGui import QFont
 
-from qtpy.QtGui import QGuiApplication, QFont, QIcon
-from qtpy.QtWidgets import QHBoxLayout, QApplication, QLineEdit, QSizePolicy, QVBoxLayout, QWidget, QMainWindow, QPushButton, QApplication, QMessageBox
-from qtpy.QtCore import Qt, QSettings, Signal, QCoreApplication, QThread
 
 from settings import ROOT_DIR
 from widgets.chatBrowser import ChatBrowser, PromptWidget
 from widgets.apiWidget import ApiWidget
-from widgets.tableWidget import AddDelTableWidget
 from scripts.openai_script import GPTAssistantWrapper
+from widgets.tableWidget import TableWidget
 
 QApplication.setFont(QFont('Arial', 12))
 
 
 class Thread(QThread):
-    afterGenerated = Signal(str)
-    errorGenerated = Signal(str)
-
-    def __init__(self, wrapper, text):
+    def __init__(self):
         super(Thread, self).__init__()
-        self.__wrapper = wrapper
-        self.__text = text
 
     def run(self):
         try:
-            args = self.__wrapper.get_arguments(cur_text=self.__text)
-            response = self.__wrapper.get_text_response(args)
-            self.afterGenerated.emit(response)
+            pass
         except Exception as e:
-            self.errorGenerated.emit(str(e))
+            raise Exception(e)
 
 
 class MainWindow(QMainWindow):
@@ -56,14 +47,13 @@ class MainWindow(QMainWindow):
         self.__api_key = self.__settings_ini.value('API_KEY', type=str)
 
         self.__wrapper = GPTAssistantWrapper(self.__api_key)
-        self.__assistant_attr = self.__wrapper.get_assistant_attributes()
-        self.__thread_attr = self.__wrapper.get_thread_attributes()
+        self.__assistant_list = self.__wrapper.get_assistants()
 
     def __initUi(self):
-        self.setWindowTitle('PyQt GPT Chatbot Example')
+        self.setWindowTitle('PyQt GPT Assistant Example')
 
-        self.__apiWidget = ApiWidget(self.__api_key, self.__wrapper, self.__settings_ini)
-        self.__apiWidget.apiKeyAccepted.connect(self.__api_key_accepted)
+        self.__apiWidget = ApiWidget(self.__api_key, wrapper=self.__wrapper, settings=self.__settings_ini)
+        # self.__apiWidget.apiKeyAccepted.connect(self.__api_key_changed)
 
         self.__chatBrowser = ChatBrowser()
 
@@ -75,99 +65,49 @@ class MainWindow(QMainWindow):
         messages = self.__wrapper.get_conversations()
         self.__chatBrowser.setMessages(messages)
 
-        self.__assistantWidget = AddDelTableWidget('Assistant', self.__assistant_attr)
-        self.__threadWidget = AddDelTableWidget('Thread', self.__thread_attr)
+        columns = ['assistant_id', 'name', 'tools', 'model', 'instructions']
 
-        self.__assistantWidget.added.connect(self.__addAssistant)
-        self.__threadWidget.added.connect(self.__addThread)
+        self.__tableWidget = TableWidget(columns=columns)
+        for obj in self.__assistant_list:
+            self.__tableWidget.addRecord(obj)
+        self.__tableWidget.selectedRecord.connect(self.__assistantSelected)
 
-        lay = QHBoxLayout()
-        lay.addWidget(self.__assistantWidget)
-        lay.addWidget(self.__threadWidget)
+        self.__currentAssistantLbl = QLabel(f'Current Assistant:')
+        self.__tableWidget.selectRow(0)
 
-        middleWidget = QWidget()
-        middleWidget.setLayout(lay)
+        self.__vbox = QVBoxLayout()
+        self.__vbox.addWidget(self.__apiWidget)
+        self.__vbox.addWidget(QLabel('Assistant'))
+        self.__vbox.addWidget(self.__tableWidget)
+        self.__vbox.addWidget(self.__currentAssistantLbl)
+        self.__vbox.addWidget(self.__chatBrowser)
+        self.__vbox.addWidget(self.__promptWidget)
 
-        lay = QVBoxLayout()
-        lay.addWidget(self.__apiWidget)
-        lay.addWidget(middleWidget)
-        lay.addWidget(self.__chatBrowser)
-        lay.addWidget(self.__promptWidget)
-        lay.setSpacing(0)
+        self.__widget = QWidget()
+        self.__widget.setLayout(self.__vbox)
 
-        mainWidget = QWidget()
-        mainWidget.setLayout(lay)
+        self.setCentralWidget(self.__widget)
 
-        self.setCentralWidget(mainWidget)
-
-        self.__setAiEnabled(self.__wrapper.is_available())
-
-    def __run(self, text):
-        self.__chatBrowser.addMessage(self.__wrapper.get_message_obj('user', text))
-
-        self.__t = Thread(self.__wrapper, text)
+    def __run(self):
+        self.__t = Thread()
         self.__t.started.connect(self.__started)
-        self.__t.afterGenerated.connect(self.__afterGenerated)
-        self.__t.errorGenerated.connect(self.__errorGenerated)
         self.__t.finished.connect(self.__finished)
         self.__t.start()
 
-    def __api_key_accepted(self, api_key, f):
-        # Enable AI related features if API key is valid
-        self.__setAiEnabled(f)
-
-    def __setAiEnabled(self, f):
-        self.__assistantWidget.setEnabled(f)
-        self.__threadWidget.setEnabled(f)
-        self.__promptWidget.setEnabled(f)
-
-        if f:
-            # Get assistant list from the server
-            assistants = self.__wrapper.get_assistants()
-            for assistant in assistants.data:
-            #     print(assistant.json)
-                obj = {
-                    'name': assistant.name,
-                    'instructions': assistant.instructions,
-                    # 'tools': assistant.tools,
-                    'model': assistant.model,
-                }
-            #     # print(assistant.id)
-            #     # print(assistant.instructions)
-            #     # print(assistant.model)
-                print(dir(assistant.tools[0]))
-
-                self.__assistantWidget.addAttrs(obj)
+    def __assistantSelected(self, obj):
+        self.__currentAssistantLbl.setText(f'Current Assistant: {obj["name"]}')
 
     def __started(self):
-        pass
-        # self.__btn.setEnabled(False)
-
-    def __afterGenerated(self, response: dict):
-        self.__chatBrowser.addMessage(response)
-
-    def __errorGenerated(self, error: str):
-        self.__chatBrowser.addMessage(self.__wrapper.get_message_obj('assistant', error))
-        QMessageBox.critical(self, 'Error', error)
-
-    def __addAssistant(self, attr):
-        print(attr)
-        # self.__wrapper.init_assistant(**attr)
-
-    def __addThread(self, attr):
-        print(attr)
-        # self.__wrapper.set_thread(attr)
+        print('started')
 
     def __finished(self):
-        pass
-        # self.__btn.setEnabled(True)
+        print('finished')
 
 
 if __name__ == "__main__":
     import sys
 
     app = QApplication(sys.argv)
-    QApplication.setWindowIcon(QIcon('logo.png'))
     w = MainWindow()
     w.show()
     sys.exit(app.exec())

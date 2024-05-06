@@ -62,7 +62,7 @@ class InputDialog(QDialog):
 
         self.__setAccept()
 
-    def getAttributes(self):
+    def getAttribute(self):
         return self.__output_attr
 
     # FIXME

@@ -9,8 +9,8 @@ project_root = os.path.dirname(os.path.dirname(script_path))
 sys.path.insert(0, project_root)
 sys.path.insert(0, os.getcwd())  # Add the current directory as well
 
-from qtpy.QtWidgets import QMainWindow, QPushButton, QApplication, QVBoxLayout, QWidget, QLabel
-from qtpy.QtCore import Qt, QSettings, QCoreApplication, QThread
+from qtpy.QtWidgets import QMainWindow, QPushButton, QApplication, QVBoxLayout, QWidget, QLabel, QMessageBox
+from qtpy.QtCore import Qt, QSettings, QCoreApplication, QThread, Signal
 from qtpy.QtGui import QFont
 
 
@@ -24,14 +24,20 @@ QApplication.setFont(QFont('Arial', 12))
 
 
 class Thread(QThread):
-    def __init__(self):
+    afterGenerated = Signal(dict)
+    errorGenerated = Signal(str)
+
+    def __init__(self, wrapper, text):
         super(Thread, self).__init__()
+        self.__wrapper = wrapper
+        self.__text = text
 
     def run(self):
         try:
-            pass
+            response = self.__wrapper.send_message(self.__text)
+            self.afterGenerated.emit(response)
         except Exception as e:
-            raise Exception(e)
+            self.errorGenerated.emit(str(e))
 
 
 class MainWindow(QMainWindow):
@@ -53,7 +59,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('PyQt GPT Assistant Example')
 
         self.__apiWidget = ApiWidget(self.__api_key, wrapper=self.__wrapper, settings=self.__settings_ini)
-        # self.__apiWidget.apiKeyAccepted.connect(self.__api_key_changed)
+        self.__apiWidget.apiKeyAccepted.connect(self.__api_key_accepted)
 
         self.__chatBrowser = ChatBrowser()
 
@@ -88,20 +94,40 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.__widget)
 
-    def __run(self):
-        self.__t = Thread()
+    def __assistantSelected(self, obj):
+        self.__currentAssistantLbl.setText(f'Current Assistant: {obj["name"]}')
+        self.__wrapper.set_current_assistant(obj['assistant_id'])
+
+    def __run(self, text):
+        self.__chatBrowser.addMessage(self.__wrapper.get_message_obj('user', text))
+
+        self.__t = Thread(self.__wrapper, text)
         self.__t.started.connect(self.__started)
+        self.__t.afterGenerated.connect(self.__afterGenerated)
+        self.__t.errorGenerated.connect(self.__errorGenerated)
         self.__t.finished.connect(self.__finished)
         self.__t.start()
 
-    def __assistantSelected(self, obj):
-        self.__currentAssistantLbl.setText(f'Current Assistant: {obj["name"]}')
+    def __api_key_accepted(self, api_key, f):
+        # Enable AI related features if API key is valid
+        self.__setAiEnabled(f)
+
+    def __setAiEnabled(self, f):
+        self.__promptWidget.setEnabled(f)
 
     def __started(self):
-        print('started')
+        pass
+        # self.__btn.setEnabled(False)
+
+    def __afterGenerated(self, response: dict):
+        self.__chatBrowser.addMessage(response)
+
+    def __errorGenerated(self, error: str):
+        self.__chatBrowser.addMessage(self.__wrapper.get_message_obj('assistant', error))
+        QMessageBox.critical(self, 'Error', error)
 
     def __finished(self):
-        print('finished')
+        pass
 
 
 if __name__ == "__main__":

@@ -57,6 +57,7 @@ class GPTAssistantWrapper(GPTWrapper):
     def __init__(self, api_key=None, db_url='sqlite:///conv.db'):
         super().__init__(api_key=api_key, db_url=db_url)
         self.__assistant_id = None
+        self.__thread_id = None
         self.__assistants = []
 
     def get_assistants(self, order='desc', limit=None):
@@ -69,55 +70,61 @@ class GPTAssistantWrapper(GPTWrapper):
             "instructions": assistant.instructions,
             "tools": assistant.tools,
             "model": assistant.model,
+            "thread": '',
         } for assistant in assistants]
         self.__assistants = assistants
         return self.__assistants
 
-    def set_thread(self, name):
+    def set_current_assistant(self, assistant_id):
+        self.__assistant_id = assistant_id
+        self.__set_current_thread()
+
+    def __set_current_thread(self):
         if self.__assistant_id is None:
             raise ValueError('Assistant is not initialized yet')
         else:
-            thread = self._db_handler.query_table(Thread, {"name": name, "assistant_id": self.__assistant_id})
-            if thread:
-                print(f"Thread {name} already exists")
-                self.__thread_id = thread[0].thread_id
-            else:
-                thread = self._client.beta.threads.create()
-                self.__thread_id = thread.id
-                thread_obj = {"thread_id": self.__thread_id,
-                              "name": name,
-                              "assistant_id": self.__assistant_id}
-                self._db_handler.append(Thread, thread_obj)
+            # thread = self._db_handler.query_table(Thread, {"name": name, "assistant_id": self.__assistant_id})
+            # if thread:
+            #     print(f"Thread {name} already exists")
+            #     self.__thread_id = thread[0].thread_id
+            # else:
+            thread = self._client.beta.threads.create()
+            self.__thread_id = thread.id
+            for assistant in self.__assistants:
+                if assistant["assistant_id"] == self.__assistant_id:
+                    assistant["thread"] = self.__thread_id
+                    break
+            # self._db_handler.append(Thread, thread_obj)
 
     def send_message(self, message_str, instructions=''):
+        user_obj = self.get_message_obj("user", message_str)
+        self._db_handler.append(Conversation, user_obj)
+
         self._client.beta.threads.messages.create(
             thread_id=self.__thread_id,
             role="user",
             content=message_str
         )
 
-        if self.__run_id:
-            pass
-        else:
-            run = self._client.beta.threads.runs.create(
-                thread_id=self.__thread_id,
-                assistant_id=self.__assistant_id,
-                instructions=instructions,
-            )
-            self.__run_id = run.id
+        run = self._client.beta.threads.runs.create(
+            thread_id=self.__thread_id,
+            assistant_id=self.__assistant_id,
+            instructions=instructions,
+        )
 
         response = self._client.beta.threads.runs.retrieve(
           thread_id=self.__thread_id,
-          run_id=self.__run_id
+          run_id=run.id
         )
 
         while response.status == "in_progress" or response.status == "queued":
-            response = self._client.beta.threads.runs.retrieve(thread_id=self.__thread_id, run_id=self.__run_id)
+            response = self._client.beta.threads.runs.retrieve(thread_id=self.__thread_id, run_id=run.id)
 
-        messages = self._client.beta.threads.messages.list(thread_id=self.__thread_id)
-        message_data = messages.dict()["data"][0]
-        content_data = message_data["content"][0]
-        print(content_data)
+        response = self._client.beta.threads.messages.list(thread_id=self.__thread_id)
+        response = response.dict()["data"][0]
+        response = self.get_message_obj(response['role'], response['content'][0]['text']['value'])
+        self._db_handler.append(Conversation, response)
+        return response
 
 
 class GPTGeneralWrapper(GPTWrapper):

@@ -19,7 +19,7 @@ class GPTWrapper:
         self._client = None
         # Initialize OpenAI client
         if api_key:
-            self._client = OpenAI(api_key=api_key, model=model)
+            self._client = OpenAI(api_key=api_key)
         self._is_available = True if api_key else False
         self._db_handler = ''
         self.init_db(db_url)

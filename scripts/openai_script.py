@@ -14,12 +14,12 @@ IMAGE_MODELS = ['dall-e-3']
 
 # GPTWrapper is a base class for GPTAssistantWrapper and GPTGeneralWrapper
 class GPTWrapper:
-    def __init__(self, api_key=None, db_url='sqlite:///conv.db'):
+    def __init__(self, api_key=None, model='gpt-3.5-turbo', db_url='sqlite:///conv.db'):
         super().__init__()
         self._client = None
         # Initialize OpenAI client
         if api_key:
-            self._client = OpenAI(api_key=api_key)
+            self._client = OpenAI(api_key=api_key, model=model)
         self._is_available = True if api_key else False
         self._db_handler = ''
         self.init_db(db_url)

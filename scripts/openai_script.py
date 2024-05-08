@@ -14,7 +14,7 @@ IMAGE_MODELS = ['dall-e-3']
 
 # GPTWrapper is a base class for GPTAssistantWrapper and GPTGeneralWrapper
 class GPTWrapper:
-    def __init__(self, api_key=None, model='gpt-3.5-turbo', db_url='sqlite:///conv.db'):
+    def __init__(self, api_key=None, db_url='sqlite:///conv.db'):
         super().__init__()
         self._client = None
         # Initialize OpenAI client
@@ -34,6 +34,7 @@ class GPTWrapper:
             if self._is_available:
                 self._api_key = api_key
                 self._client = OpenAI(api_key=api_key)
+                os.environ['OPENAI_API_KEY'] = api_key
 
             return self._is_available
         except Exception as e:
@@ -252,22 +253,3 @@ class GPTGeneralWrapper(GPTWrapper):
 
 def is_gpt_vision(model: str):
     return model == 'gpt-4-vision-preview'
-
-db_url = 'sqlite:///conv.db'
-
-# # # For GPT test
-# # wrapper = GPTGeneralWrapper(api_key=OPENAI_API_KEY, db_url='sqlite:///conv.db')
-# # while True:
-# #     text = input("Enter the prompt: ")
-# #     if text == 'exit':
-# #         break
-# #     print(wrapper.get_text_response(wrapper.get_arguments(cur_text=text)))
-#
-# wrapper = GPTAssistantWrapper(api_key=OPENAI_API_KEY, db_url=db_url)
-# obj = {"name": "Math Tutor",
-#       "instructions": "You are a personal math tutor. Write and run code to answer math questions.",
-#       "tools": [{"type": "code_interpreter"}], # Only one type available
-#       "model": "gpt-4-0125-preview"}
-# wrapper.init_assistant(**obj)
-# wrapper.set_thread(name='ABC')
-# wrapper.send_message(message_str="What is 2+2?", instructions='Please address the user as Jane Doe. The user has a premium account.')

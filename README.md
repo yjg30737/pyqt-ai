@@ -17,6 +17,11 @@ Using SQLite is database, which is lighthearted and easy to use.
 * Replicate Image Generator 
 
 ## Directory Structure (TODO)
+```
+/examples
+/scripts
+/widgets
+```
 
 ## Requirements
 ```

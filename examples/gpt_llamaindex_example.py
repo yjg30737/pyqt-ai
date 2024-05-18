@@ -14,7 +14,7 @@ from qtpy.QtGui import QGuiApplication, QFont, QIcon
 from qtpy.QtWidgets import QHBoxLayout, QApplication, QLineEdit, QSizePolicy, QSplitter, QVBoxLayout, QWidget, QMainWindow, QPushButton, QApplication, QMessageBox
 from qtpy.QtCore import Qt, QSettings, Signal, QCoreApplication, QThread, Slot
 
-from settings import ROOT_DIR
+from constants import ROOT_DIR
 from widgets.chatBrowser import ChatBrowser, PromptWidget
 from widgets.apiWidget import ApiWidget
 from scripts.llamaindex_script import GPTLlamaIndexWrapper

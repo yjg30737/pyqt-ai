@@ -14,7 +14,7 @@ from qtpy.QtCore import Qt, QSettings, QCoreApplication, QThread, Signal
 from qtpy.QtGui import QFont
 
 
-from settings import ROOT_DIR
+from constants import ROOT_DIR
 from widgets.chatBrowser import ChatBrowser, PromptWidget
 from widgets.apiWidget import ApiWidget
 from scripts.openai_script import GPTAssistantWrapper

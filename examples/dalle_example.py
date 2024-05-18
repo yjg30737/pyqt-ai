@@ -15,7 +15,7 @@ from qtpy.QtWidgets import QLineEdit, QVBoxLayout, QMessageBox, QWidget, QMainWi
 from qtpy.QtCore import QSettings, Signal, QThread
 from qtpy.QtGui import QFont, QIcon
 
-from settings import ROOT_DIR
+from constants import ROOT_DIR
 from widgets.apiWidget import ApiWidget
 from widgets.imageView import ImageView
 from scripts.openai_script import GPTGeneralWrapper

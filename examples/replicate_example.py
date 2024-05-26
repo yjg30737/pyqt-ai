@@ -183,7 +183,6 @@ class MainWindow(QMainWindow):
         self.__btn.setEnabled(False)
 
     def __afterGenerated(self, data):
-        print(data)
         self.__imageWidget.setBJson(data)
 
     def __errorGenerated(self, error: str):

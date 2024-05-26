@@ -198,10 +198,9 @@ class GPTGeneralWrapper(GPTWrapper):
                                               }
                                           ] + multiple_images_content[:]
                 openai_arg['messages'].append({"role": "user", "content": multiple_images_content})
-            else:
-                user_obj = self.get_message_obj("user", cur_text)
-                self._db_handler.append(Conversation, user_obj)
-                openai_arg['messages'].append(user_obj)
+            user_obj = self.get_message_obj("user", cur_text)
+            self._db_handler.append(Conversation, user_obj)
+            openai_arg['messages'].append(user_obj)
             # If current model is "vision", default max token set to very low number by openai,
             # so let's set this to 4096 which is relatively better.
             if is_gpt_vision(model):

@@ -56,7 +56,7 @@ class MainWindow(QMainWindow):
         self.__wrapper = GPTLlamaIndexWrapper(self.__api_key)
 
     def __initUi(self):
-        self.setWindowTitle('PyQt GPT Chatbot Example')
+        self.setWindowTitle('PyQt GPT Chatbot Example (LlamaIndex Edition)')
 
         self.__apiWidget = ApiWidget(self.__api_key, self.__wrapper, self.__settings_ini)
         self.__apiWidget.apiKeyAccepted.connect(self.__api_key_accepted)

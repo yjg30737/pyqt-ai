@@ -28,14 +28,15 @@ class Thread(QThread):
     afterGenerated = Signal(str)
     errorGenerated = Signal(str)
 
-    def __init__(self, wrapper, prompt):
+    def __init__(self, wrapper, model, input_args):
         super().__init__()
         self.__wrapper = wrapper
-        self.__prompt = prompt
+        self.__model = model
+        self.__input_args = input_args
 
     def run(self):
         try:
-            image = self.__wrapper.get_image_response(prompt=self.__prompt)
+            image = self.__wrapper.get_image_response(model=self.__model, input_args=self.__input_args)
             self.afterGenerated.emit(image)
         except Exception as e:
             self.errorGenerated.emit(str(e))
@@ -74,11 +75,25 @@ class MainWindow(QMainWindow):
 
         self.__imageWidget = ImageView()
 
-        self.__modelCmbBox = QComboBox()
+        self.__modelCmbBox = QTextEdit()
+        self.__modelCmbBox.setText(self.__model)
+
         self.__widthSpinBox = QSpinBox()
+        self.__widthSpinBox.setRange(512, 1392)
+        self.__widthSpinBox.setSingleStep(8)
+        self.__widthSpinBox.setValue(self.__width)
+
         self.__heightSpinBox = QSpinBox()
+        self.__heightSpinBox.setRange(512, 1392)
+        self.__heightSpinBox.setSingleStep(8)
+        self.__heightSpinBox.setValue(self.__height)
+
         self.__promptWidget = QTextEdit()
+        self.__promptWidget.setText(self.__prompt)
+
         self.__negativePromptWidget = QTextEdit()
+        self.__negativePromptWidget.setPlaceholderText('ugly, deformed, noisy, blurry, distorted')
+        self.__negativePromptWidget.setText(self.__negative_prompt)
 
         self.__promptWidget.setMaximumHeight(100)
         self.__negativePromptWidget.setMaximumHeight(100)
@@ -124,29 +139,54 @@ class MainWindow(QMainWindow):
 
         self.__setAiEnabled(self.__wrapper.is_available())
 
+    def __attrChanged(self, v):
+        sender = self.sender()
+        if sender == self.__modelCmbBox:
+            self.__model = v
+            self.__settings_ini.setValue('model', self.__model)
+        elif sender == self.__widthSpinBox:
+            self.__width = v
+            self.__settings_ini.setValue('width', self.__width)
+        elif sender == self.__heightSpinBox:
+            self.__height = v
+            self.__settings_ini.setValue('height', self.__height)
+        elif sender == self.__promptWidget:
+            self.__prompt = v
+            self.__settings_ini.setValue('prompt', self.__prompt)
+        elif sender == self.__negativePromptWidget:
+            self.__negative_prompt = v
+            self.__settings_ini.setValue('negative_prompt', self.__negative_prompt)
+
     def __run(self):
-        prompt = self.__promptWidget.text()
-        self.__t = Thread(self.__wrapper, prompt)
+        input_args = {
+            'width': self.__width,
+            'height': self.__height,
+            'prompt': self.__prompt,
+            'negative_prompt': self.__negative_prompt
+        }
+
+        self.__t = Thread(self.__wrapper, self.__model, input_args)
         self.__t.started.connect(self.__started)
+        self.__t.errorGenerated.connect(self.__errorGenerated)
         self.__t.afterGenerated.connect(self.__afterGenerated)
         self.__t.finished.connect(self.__finished)
         self.__t.start()
 
     def __api_key_accepted(self, api_key, f):
-        # Enable AI related features if API key is valid
+        self.__wrapper.set_api(api_key)
         self.__setAiEnabled(f)
 
     def __setAiEnabled(self, f):
-        self.__promptWidget.setEnabled(f)
+        self.__btn.setEnabled(f)
 
     def __started(self):
         self.__btn.setEnabled(False)
 
     def __afterGenerated(self, data):
+        print(data)
         self.__imageWidget.setBJson(data)
 
     def __errorGenerated(self, error: str):
-        self.__chatBrowser.addMessage(self.__wrapper.get_message_obj('assistant', error))
         QMessageBox.critical(self, 'Error', error)
 
     def __finished(self):

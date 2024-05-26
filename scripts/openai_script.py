@@ -18,9 +18,9 @@ class GPTWrapper:
         super().__init__()
         self._client = None
         # Initialize OpenAI client
-        if api_key:
-            self._client = OpenAI(api_key=api_key)
         self._is_available = True if api_key else False
+        if api_key and self._is_available:
+            self.set_api(api_key)
         self._db_handler = ''
         self.init_db(db_url)
 
@@ -28,14 +28,16 @@ class GPTWrapper:
         return self._is_available
 
     def set_api(self, api_key):
+        self._api_key = api_key
+        self._client = OpenAI(api_key=api_key)
+        os.environ['OPENAI_API_KEY'] = api_key
+
+    def request_and_set_api(self, api_key):
         try:
             response = requests.get('https://api.openai.com/v1/models', headers={'Authorization': f'Bearer {api_key}'})
             self._is_available = response.status_code == 200
             if self._is_available:
-                self._api_key = api_key
-                self._client = OpenAI(api_key=api_key)
-                os.environ['OPENAI_API_KEY'] = api_key
-
+                self.set_api(api_key)
             return self._is_available
         except Exception as e:
             print(e)

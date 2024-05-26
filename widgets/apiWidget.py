@@ -51,10 +51,12 @@ class ApiWidget(QWidget):
         self.__api_key = self.__apiLineEdit.text()
         self.__settings_ini.setValue(self.__api_key_name, self.__api_key)
         if self.__not_check_api:
+            self.__wrapper.request_and_set_api(self.__api_key)
+            # This has to be set to True because we are not checking the API key
             f = True
         else:
             try:
-                f = self.__wrapper.set_api(self.__api_key)
+                f = self.__wrapper.request_and_set_api(self.__api_key)
                 if f:
                     self.__apiCheckPreviewLbl.setStyleSheet("color: {}".format(QColor(0, 200, 0).name()))
                     self.__apiCheckPreviewLbl.setText('API key is valid')

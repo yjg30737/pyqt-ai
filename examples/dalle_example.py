@@ -94,7 +94,7 @@ class MainWindow(QMainWindow):
         self.__setAiEnabled(f)
 
     def __setAiEnabled(self, f):
-        self.__promptWidget.setEnabled(f)
+        self.__btn.setEnabled(f)
 
     def __started(self):
         self.__btn.setEnabled(False)

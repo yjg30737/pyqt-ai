@@ -74,8 +74,9 @@ class MainWindow(QMainWindow):
         columns = ['assistant_id', 'name', 'tools', 'model', 'instructions']
 
         self.__tableWidget = TableWidget(columns=columns)
-        for obj in self.__assistant_list:
-            self.__tableWidget.addRecord(obj)
+        if self.__assistant_list:
+            for obj in self.__assistant_list:
+                self.__tableWidget.addRecord(obj)
         self.__tableWidget.selectedRecord.connect(self.__assistantSelected)
 
         self.__currentAssistantLbl = QLabel(f'Current Assistant:')
@@ -93,6 +94,8 @@ class MainWindow(QMainWindow):
         self.__widget.setLayout(self.__vbox)
 
         self.setCentralWidget(self.__widget)
+
+        self.__setAiEnabled(self.__wrapper.is_available())
 
     def __assistantSelected(self, obj):
         self.__currentAssistantLbl.setText(f'Current Assistant: {obj["name"]}')

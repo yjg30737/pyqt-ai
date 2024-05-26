@@ -122,11 +122,11 @@ class MainWindow(QMainWindow):
         self.__setAiEnabled(f)
 
     def __setAiEnabled(self, f):
+        self.__listWidget.setEnabled(f)
         self.__promptWidget.setEnabled(f)
 
     def __started(self):
-        pass
-        # self.__btn.setEnabled(False)
+        self.__setAiEnabled(False)
 
     def __afterGenerated(self, response: dict):
         self.__chatBrowser.addMessage(response)
@@ -136,8 +136,7 @@ class MainWindow(QMainWindow):
         QMessageBox.critical(self, 'Error', error)
 
     def __finished(self):
-        pass
-        # self.__btn.setEnabled(True)
+        self.__setAiEnabled(True)
 
 
 if __name__ == "__main__":

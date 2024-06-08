@@ -8,8 +8,7 @@ from openai import OpenAI
 
 from scripts.db_handler import GenericDBHandler, Conversation, Assistant, Thread
 
-TEXT_MODELS = ['gpt-4-0125-preview', 'gpt-4', 'gpt-4-1106-preview', 'gpt-4-vision-preview',
-                             'gpt-3.5-turbo', 'gpt-3.5-turbo-16k']
+TEXT_MODELS = ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'],
 IMAGE_MODELS = ['dall-e-3']
 
 # GPTWrapper is a base class for GPTAssistantWrapper and GPTGeneralWrapper

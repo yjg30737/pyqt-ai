@@ -100,7 +100,7 @@ class MainWindow(QMainWindow):
         mainWidget.setLayout(lay)
 
         self.setCentralWidget(mainWidget)
-        self.__setAiEnabled(False)
+        self.__setAiEnabled(self.__wrapper.is_available())
 
     def __onDirectorySelected(self, directory):
         self.__wrapper.set_directory(directory)

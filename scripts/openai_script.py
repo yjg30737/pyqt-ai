@@ -144,7 +144,7 @@ class GPTGeneralWrapper(GPTWrapper):
 
     def get_arguments(
         self,
-        model="gpt-4-0125-preview",
+        model="gpt-4o",
         system="You are a very helpful assistant.",
         n=1,
         temperature=1,

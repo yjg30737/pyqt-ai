@@ -6,7 +6,7 @@ This is a showcase of bundle of chatbots and image generators using OpenAI, llam
 
 This can be used in pyqt6, pyside6.
 
-Using SQLite is database, which is lighthearted and easy to use.
+Using SQLite as database, which is lighthearted and easy to use.
 
 ## Applications list
 * OpenAI Chatbot
@@ -56,10 +56,7 @@ requests
 # Install requirements
 >>> pip install -r requirements.txt
 # Run application you want
->>> python example/gpt/*.py
+>>> python examples/*.py
 ```
 
 ## Preview (TODO)
-
-## See Also (TODO)
-### Other Applications

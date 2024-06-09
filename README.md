@@ -1,5 +1,4 @@
 # pyqt-ai
-Currently this is underdeveloped.
 
 ## Description
 This is a showcase of bundle of chatbots and image generators using OpenAI, llamaindex, replicate, etc on PyQt/PySide.
@@ -11,9 +10,9 @@ Using SQLite as database, which is lighthearted and easy to use.
 ## Applications list
 * OpenAI Chatbot
 * DALLE Image Generator
-* LlamaIndex with OpenAI Chatbot
-* GPT Vision Chatbot
 * GPT Assistant Chatbot
+* GPT Vision Chatbot
+* LlamaIndex with OpenAI Chatbot
 * Replicate Image Generator 
 
 ## Directory Structure (TODO)

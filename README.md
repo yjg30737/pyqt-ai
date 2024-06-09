@@ -15,7 +15,7 @@ Using SQLite as database, which is lighthearted and easy to use.
 * LlamaIndex with OpenAI Chatbot
 * Replicate Image Generator 
 
-## Directory Structure (TODO)
+## Directory Structure
 ```
 /examples
 /scripts

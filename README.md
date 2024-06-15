@@ -57,5 +57,3 @@ requests
 # Run application you want
 >>> python examples/*.py
 ```
-
-## Preview (TODO)

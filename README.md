@@ -1,4 +1,5 @@
 # pyqt-ai
+[![](https://dcbadge.vercel.app/api/server/cHekprskVE)](https://discord.gg/cHekprskVE)
 
 ## Description
 This is a showcase of bundle of chatbots and image generators using OpenAI, llamaindex, replicate, etc on PyQt/PySide.

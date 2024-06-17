@@ -58,3 +58,6 @@ requests
 # Run application you want
 >>> python examples/*.py
 ```
+
+## Preview
+https://youtu.be/owRaR_2ZfcM

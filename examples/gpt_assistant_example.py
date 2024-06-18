@@ -114,6 +114,10 @@ class MainWindow(QMainWindow):
     def __api_key_accepted(self, api_key, f):
         # Enable AI related features if API key is valid
         self.__setAiEnabled(f)
+        self.__assistant_list = self.__wrapper.get_assistants()
+        if self.__assistant_list:
+            for obj in self.__assistant_list:
+                self.__tableWidget.addRecord(obj)
 
     def __setAiEnabled(self, f):
         self.__promptWidget.setEnabled(f)

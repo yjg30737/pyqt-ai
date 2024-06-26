@@ -223,26 +223,37 @@ class GPTGeneralWrapper(GPTWrapper):
         except Exception as e:
             raise Exception(e)
 
-    def get_image_response(self, model='dall-e-3', prompt="""
-        Photorealistic,
-        Close-up portrait of a person for an ID card, neutral background, professional attire, clear facial features, eye-level shot, soft lighting to highlight details without harsh shadows, high resolution for print quality --ar 1:1
-        """, n=1, style='vivid', size='1024x1024', response_format='b64_json'):
-            image_data = ''
-            try:
-                if self.is_available():
-                    response = self._client.images.generate(
-                        model=model,
-                        prompt=prompt,
-                        n=n,
-                        style=style,
-                        size=size,
-                        response_format=response_format,
-                    )
-                    for _ in response.data:
-                        image_data = _.b64_json
-                    return image_data
-                else:
-                    raise ValueError('GPT is not available')
-            except Exception as e:
-                print(e)
-                raise Exception(e)
+    def get_image_response(self, model='dall-e-3', input_args=None):
+        image_data = ''
+
+        model = "dall-e-3" if model is None else model
+
+        input_args = {
+            "size": f"{input_args['width']}x{input_args['height']}",
+            "prompt": "Astronaut in a jungle, cold color palette, muted colors, detailed, 8k",
+            "negative_prompt": "ugly, deformed, noisy, blurry, distorted",
+        } if input_args is None else input_args
+
+        input_args["n"] = 1 if "n" not in input_args else input_args["n"]
+        input_args["style"] = 'vivid' if "style" not in input_args else input_args["style"]
+        input_args["response_format"] = 'b64_json' if "response_format" not in input_args else input_args["response_format"]
+        input_args["quality"] = 'standard' if "quality" not in input_args else input_args["quality"]
+
+        del input_args['width']
+        del input_args['height']
+
+        input_args['model'] = model
+
+        try:
+            if self.is_available():
+                response = self._client.images.generate(
+                    **input_args
+                )
+                for _ in response.data:
+                    image_data = _.b64_json
+                return image_data
+            else:
+                raise ValueError('GPT is not available')
+        except Exception as e:
+            print(e)
+            raise Exception(e)

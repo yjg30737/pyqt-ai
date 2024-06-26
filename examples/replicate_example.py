@@ -11,9 +11,9 @@ project_root = os.path.dirname(os.path.dirname(script_path))
 sys.path.insert(0, project_root)
 sys.path.insert(0, os.getcwd())  # Add the current directory as well
 
-from qtpy.QtWidgets import QLineEdit, QVBoxLayout, QFormLayout, QScrollArea, \
-    QSplitter, QGroupBox, QComboBox, QSpinBox, QSizePolicy, QTextEdit, QMessageBox, QWidget, QMainWindow, QPushButton, QApplication
-from qtpy.QtCore import QSettings, Signal, QThread, Qt
+from qtpy.QtWidgets import QVBoxLayout, QFormLayout, QPlainTextEdit, \
+    QSplitter, QGroupBox, QSpinBox, QSizePolicy, QMessageBox, QWidget, QMainWindow, QPushButton, QApplication
+from qtpy.QtCore import QSettings, Signal, QThread
 from qtpy.QtGui import QFont, QIcon
 
 from constants import ROOT_DIR
@@ -50,11 +50,12 @@ class MainWindow(QMainWindow):
 
     def __initVal(self):
         self.__settings_ini = QSettings(os.path.join(ROOT_DIR, 'settings.ini'), QSettings.IniFormat)
+        self.__settings_ini.beginGroup('REPLICATE')
         if not self.__settings_ini.contains('REPLICATE_API_TOKEN'):
             self.__settings_ini.setValue('REPLICATE_API_TOKEN', '')
             self.__settings_ini.setValue('model', 'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b')
-            self.__settings_ini.setValue('width', 768)
-            self.__settings_ini.setValue('height', 768)
+            self.__settings_ini.setValue('width', 1024)
+            self.__settings_ini.setValue('height', 1024)
             self.__settings_ini.setValue('prompt', "Astronaut in a jungle, cold color palette, muted colors, detailed, 8k")
             self.__settings_ini.setValue('negative_prompt', "ugly, deformed, noisy, blurry, distorted")
         self.__api_key = self.__settings_ini.value('REPLICATE_API_TOKEN', type=str)
@@ -63,43 +64,49 @@ class MainWindow(QMainWindow):
         self.__height = self.__settings_ini.value('height', type=int)
         self.__prompt = self.__settings_ini.value('prompt', type=str)
         self.__negative_prompt = self.__settings_ini.value('negative_prompt', type=str)
+        self.__settings_ini.endGroup()
 
         self.__wrapper = ReplicateWrapper(self.__api_key)
 
     def __initUi(self):
         self.setWindowTitle('PyQt Replicate Example')
 
-        self.__apiWidget = ApiWidget(self.__api_key, self.__wrapper, self.__settings_ini, 'REPLICATE_API_TOKEN', True)
+        self.__apiWidget = ApiWidget(self.__api_key, self.__wrapper, self.__settings_ini, 'REPLICATE_API_TOKEN', True, 'REPLICATE')
         self.__apiWidget.apiKeyAccepted.connect(self.__api_key_accepted)
         self.__apiWidget.notCheckApi()
 
         self.__imageWidget = ImageView()
 
-        self.__modelCmbBox = QTextEdit()
-        self.__modelCmbBox.setText(self.__model)
+        self.__modelTextEdit = QPlainTextEdit()
+        self.__modelTextEdit.setPlainText(self.__model)
+        self.__modelTextEdit.textChanged.connect(self.__attrChanged)
 
         self.__widthSpinBox = QSpinBox()
         self.__widthSpinBox.setRange(512, 1392)
         self.__widthSpinBox.setSingleStep(8)
         self.__widthSpinBox.setValue(self.__width)
+        self.__widthSpinBox.valueChanged.connect(self.__attrChanged)
 
         self.__heightSpinBox = QSpinBox()
         self.__heightSpinBox.setRange(512, 1392)
         self.__heightSpinBox.setSingleStep(8)
         self.__heightSpinBox.setValue(self.__height)
+        self.__heightSpinBox.valueChanged.connect(self.__attrChanged)
 
-        self.__promptWidget = QTextEdit()
-        self.__promptWidget.setText(self.__prompt)
+        self.__promptWidget = QPlainTextEdit()
+        self.__promptWidget.setPlainText(self.__prompt)
+        self.__promptWidget.textChanged.connect(self.__attrChanged)
 
-        self.__negativePromptWidget = QTextEdit()
+        self.__negativePromptWidget = QPlainTextEdit()
         self.__negativePromptWidget.setPlaceholderText('ugly, deformed, noisy, blurry, distorted')
-        self.__negativePromptWidget.setText(self.__negative_prompt)
+        self.__negativePromptWidget.setPlainText(self.__negative_prompt)
+        self.__negativePromptWidget.textChanged.connect(self.__attrChanged)
 
         self.__promptWidget.setMaximumHeight(100)
         self.__negativePromptWidget.setMaximumHeight(100)
 
         lay = QFormLayout()
-        lay.addRow('Model', self.__modelCmbBox)
+        lay.addRow('Model', self.__modelTextEdit)
         lay.addRow('Width', self.__widthSpinBox)
         lay.addRow('Height', self.__heightSpinBox)
         lay.addRow('Prompt', self.__promptWidget)
@@ -141,7 +148,8 @@ class MainWindow(QMainWindow):
 
     def __attrChanged(self, v):
         sender = self.sender()
-        if sender == self.__modelCmbBox:
+        self.__settings_ini.beginGroup('REPLICATE')
+        if sender == self.__modelTextEdit:
             self.__model = v
             self.__settings_ini.setValue('model', self.__model)
         elif sender == self.__widthSpinBox:
@@ -156,6 +164,7 @@ class MainWindow(QMainWindow):
         elif sender == self.__negativePromptWidget:
             self.__negative_prompt = v
             self.__settings_ini.setValue('negative_prompt', self.__negative_prompt)
+        self.__settings_ini.endGroup()
 
     def __run(self):
         input_args = {
@@ -173,7 +182,7 @@ class MainWindow(QMainWindow):
         self.__t.start()
 
     def __api_key_accepted(self, api_key, f):
-        self.__wrapper.set_api(api_key)
+        self.__wrapper.request_and_set_api(api_key)
         self.__setAiEnabled(f)
 
     def __setAiEnabled(self, f):

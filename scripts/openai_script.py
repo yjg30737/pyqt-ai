@@ -202,10 +202,6 @@ class GPTGeneralWrapper(GPTWrapper):
             user_obj = self.get_message_obj("user", cur_text)
             self._db_handler.append(Conversation, user_obj)
             openai_arg['messages'].append(user_obj)
-            # If current model is "vision", default max token set to very low number by openai,
-            # so let's set this to 4096 which is relatively better.
-            if is_gpt_vision(model):
-                openai_arg['max_tokens'] = 4096
             if use_max_tokens:
                 openai_arg['max_tokens'] = max_tokens
 
@@ -250,6 +246,3 @@ class GPTGeneralWrapper(GPTWrapper):
             except Exception as e:
                 print(e)
                 raise Exception(e)
-
-def is_gpt_vision(model: str):
-    return model == 'gpt-4-vision-preview'

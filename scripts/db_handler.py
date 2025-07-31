@@ -1,6 +1,14 @@
 import datetime
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, ARRAY
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Integer,
+    String,
+    DateTime,
+    ForeignKey,
+    ARRAY,
+)
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
 Base = declarative_base()
@@ -49,18 +57,27 @@ class GenericDBHandler:
 
     def get_conversations(self):
         conversations = self.query_table(Conversation)
-        return [{'role': conversation.role, 'content': conversation.content}
-        for conversation in conversations]
+        return [
+            {"role": conversation.role, "content": conversation.content}
+            for conversation in conversations
+        ]
 
     def get_assistant(self):
         assistant = self.query_table(Assistant)
-        return [{'name': assistant.name, 'instructions': assistant.instructions, 'tools': assistant.tools, 'model': assistant.model}
-        for assistant in assistant]
+        return [
+            {
+                "name": assistant.name,
+                "instructions": assistant.instructions,
+                "tools": assistant.tools,
+                "model": assistant.model,
+            }
+            for assistant in assistant
+        ]
 
 
 # Conversation table
 class Conversation(Base):
-    __tablename__ = 'conversation'
+    __tablename__ = "conversation"
 
     id = Column(Integer, primary_key=True)
     role = Column(String(500))
@@ -69,7 +86,7 @@ class Conversation(Base):
 
 
 class Assistant(Base):
-    __tablename__ = 'assistant'
+    __tablename__ = "assistant"
 
     id = Column(Integer, primary_key=True)
     assistant_id = Column(String(500))
@@ -83,14 +100,15 @@ class Assistant(Base):
 
 
 class Thread(Base):
-    __tablename__ = 'thread'
+    __tablename__ = "thread"
 
     id = Column(Integer, primary_key=True)
     thread_id = Column(String(500))
     name = Column(String(500))
-    assistant_id = Column(Integer, ForeignKey('assistant.id'))
+    assistant_id = Column(Integer, ForeignKey("assistant.id"))
 
     assistant = relationship("Assistant", back_populates="threads")
+
 
 # # ConversationHandler 인스턴스 생성 및 데이터베이스 연결
 # # sqlite

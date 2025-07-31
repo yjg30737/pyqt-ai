@@ -1,29 +1,42 @@
 from qtpy import QtGui
 from qtpy.QtCore import Qt, QPoint, Signal, QTimer, QPropertyAnimation
 from qtpy.QtGui import QFont, QIcon
-from qtpy.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy, QPushButton, \
-    QApplication
+from qtpy.QtWidgets import (
+    QWidget,
+    QLabel,
+    QHBoxLayout,
+    QVBoxLayout,
+    QSizePolicy,
+    QPushButton,
+    QApplication,
+)
 
 
 class NotifierWidget(QWidget):
     doubleClicked = Signal()
 
-    def __init__(self, informative_text='', detailed_text=''):
+    def __init__(self, informative_text="", detailed_text=""):
         super().__init__()
         self.__timerVal = 5000
         self.__initUi(informative_text, detailed_text)
 
-    def __initUi(self, informative_text='', detailed_text=''):
+    def __initUi(self, informative_text="", detailed_text=""):
         self.setFixedSize(250, 150)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow)
+        self.setWindowFlags(
+            Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.SubWindow
+        )
 
-        self.__informativeTextLabel = QLabel(informative_text) if informative_text else QLabel('Informative')
-        self.__informativeTextLabel.setFont(QFont('Arial', 15, QFont.Bold))
-        self.__detailedTextLabel = QLabel(detailed_text) if detailed_text else QLabel('Detailed')
+        self.__informativeTextLabel = (
+            QLabel(informative_text) if informative_text else QLabel("Informative")
+        )
+        self.__informativeTextLabel.setFont(QFont("Arial", 15, QFont.Bold))
+        self.__detailedTextLabel = (
+            QLabel(detailed_text) if detailed_text else QLabel("Detailed")
+        )
 
         closeBtn = QPushButton()
         closeBtn.clicked.connect(self.close)
-        closeBtn.setIcon(QIcon('../ico/close.svg'))
+        closeBtn.setIcon(QIcon("../ico/close.svg"))
 
         lay = QHBoxLayout()
         lay.setContentsMargins(0, 0, 0, 0)
@@ -63,7 +76,9 @@ class NotifierWidget(QWidget):
 
     def addWidgets(self, widgets: list):
         for widget in widgets:
-            widget.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+            widget.setSizePolicy(
+                QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding
+            )
             self.__btnWidget.layout().addWidget(widget)
 
     def show(self) -> None:

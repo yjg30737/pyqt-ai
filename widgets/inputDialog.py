@@ -1,6 +1,19 @@
-from qtpy.QtWidgets import QDialog, QFormLayout, QVBoxLayout, QLineEdit, QFrame, QPushButton, QHBoxLayout, QWidget, \
-    QComboBox, QLineEdit, QSpinBox, QTextEdit, QDoubleSpinBox
 from qtpy.QtCore import Qt
+from qtpy.QtWidgets import (
+    QDialog,
+    QVBoxLayout,
+    QCheckBox,
+    QFrame,
+    QGroupBox,
+    QPushButton,
+    QHBoxLayout,
+    QWidget,
+    QComboBox,
+    QLineEdit,
+    QSpinBox,
+    QTextEdit,
+    QDoubleSpinBox,
+)
 
 from scripts.qt_script import get_form_layout
 
@@ -23,7 +36,9 @@ class InputDialog(QDialog):
 
     def __initVal(self, attributes_list):
         self.__input_attr = attributes_list
-        self.__output_attr = {obj['attribute']: obj['default'] for obj in self.__input_attr}
+        self.__output_attr = {
+            obj["attribute"]: obj["default"] for obj in self.__input_attr
+        }
 
     def __initUi(self, title):
         self.setWindowTitle(title)
@@ -38,10 +53,10 @@ class InputDialog(QDialog):
         sep.setFrameShape(QFrame.HLine)
         sep.setFrameShadow(QFrame.Sunken)
 
-        self.__okBtn = QPushButton('OK')
+        self.__okBtn = QPushButton("OK")
         self.__okBtn.clicked.connect(self.accept)
 
-        cancelBtn = QPushButton('Cancel')
+        cancelBtn = QPushButton("Cancel")
         cancelBtn.clicked.connect(self.close)
 
         lay = QHBoxLayout()
@@ -71,8 +86,8 @@ class InputDialog(QDialog):
         # Enable OK button if all required fields are filled
         # Get widgets in the form layout
         for i, obj in enumerate(self.__input_attr):
-            widget = obj['widget']
-            v = ''
+            widget = obj["widget"]
+            v = ""
             if isinstance(widget, QComboBox) and widget.currentText().strip():
                 v = widget.currentText().strip()
             elif isinstance(widget, QLineEdit) and widget.text().strip():
@@ -91,5 +106,5 @@ class InputDialog(QDialog):
                 self.__okBtn.setEnabled(False)
                 return
             else:
-                self.__output_attr[obj['attribute']] = v
+                self.__output_attr[obj["attribute"]] = v
         self.__okBtn.setEnabled(True)

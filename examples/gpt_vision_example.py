@@ -10,10 +10,22 @@ project_root = os.path.dirname(os.path.dirname(script_path))
 sys.path.insert(0, project_root)
 sys.path.insert(0, os.getcwd())  # Add the current directory as well
 
-os.environ['QT_API'] = 'pyside6'
+os.environ["QT_API"] = "pyside6"
 
 from qtpy.QtGui import QGuiApplication, QFont, QIcon
-from qtpy.QtWidgets import QHBoxLayout, QApplication, QLineEdit, QSizePolicy, QMessageBox, QVBoxLayout, QWidget, QMainWindow, QSplitter, QPushButton, QApplication
+from qtpy.QtWidgets import (
+    QHBoxLayout,
+    QApplication,
+    QLineEdit,
+    QSizePolicy,
+    QMessageBox,
+    QVBoxLayout,
+    QWidget,
+    QMainWindow,
+    QSplitter,
+    QPushButton,
+    QApplication,
+)
 from qtpy.QtCore import Qt, QSettings, Signal, QCoreApplication, QThread, Slot
 
 from constants import ROOT_DIR
@@ -24,7 +36,7 @@ from widgets.fileListWidget import FileListWidget
 
 from scripts.openai_script import GPTGeneralWrapper
 
-QApplication.setFont(QFont('Arial', 12))
+QApplication.setFont(QFont("Arial", 12))
 
 
 class Thread(QThread):
@@ -39,7 +51,11 @@ class Thread(QThread):
 
     def run(self):
         try:
-            args = self.__wrapper.get_arguments(model='gpt-4-vision-preview', cur_text=self.__text, images_for_vision=self.__images)
+            args = self.__wrapper.get_arguments(
+                model="gpt-4-vision-preview",
+                cur_text=self.__text,
+                images_for_vision=self.__images,
+            )
             response = self.__wrapper.get_text_response(args)
             self.afterGenerated.emit(response)
         except Exception as e:
@@ -53,31 +69,35 @@ class MainWindow(QMainWindow):
         self.__initUi()
 
     def __initVal(self):
-        self.__settings_ini = QSettings(os.path.join(ROOT_DIR, 'settings.ini'), QSettings.IniFormat)
-        if not self.__settings_ini.contains('API_KEY'):
-            self.__settings_ini.setValue('API_KEY', '')
-        self.__api_key = self.__settings_ini.value('API_KEY', type=str)
+        self.__settings_ini = QSettings(
+            os.path.join(ROOT_DIR, "settings.ini"), QSettings.IniFormat
+        )
+        if not self.__settings_ini.contains("API_KEY"):
+            self.__settings_ini.setValue("API_KEY", "")
+        self.__api_key = self.__settings_ini.value("API_KEY", type=str)
 
         # Set SQLite database path as default
         self.__wrapper = GPTGeneralWrapper(self.__api_key)
 
     def __initUi(self):
-        self.setWindowTitle('PyQt GPT Vision Example')
+        self.setWindowTitle("PyQt GPT Vision Example")
 
-        self.__apiWidget = ApiWidget(self.__api_key, self.__wrapper, self.__settings_ini)
+        self.__apiWidget = ApiWidget(
+            self.__api_key, self.__wrapper, self.__settings_ini
+        )
         self.__apiWidget.apiKeyAccepted.connect(self.__api_key_accepted)
 
         self.__chatBrowser = ChatBrowser()
 
         self.__promptWidget = PromptWidget()
         self.__promptTextEdit = self.__promptWidget.getTextEdit()
-        self.__promptTextEdit.setPlaceholderText('Enter the prompt...')
+        self.__promptTextEdit.setPlaceholderText("Enter the prompt...")
         self.__promptWidget.sendPrompt.connect(self.__run)
 
         messages = self.__wrapper.get_conversations()
         self.__chatBrowser.setMessages(messages)
 
-        self.__fileListWidget = FileListWidget('Image Files')
+        self.__fileListWidget = FileListWidget("Image Files")
 
         lay = QVBoxLayout()
         lay.addWidget(self.__apiWidget)
@@ -95,15 +115,14 @@ class MainWindow(QMainWindow):
         mainWidget.setHandleWidth(1)
         mainWidget.setChildrenCollapsible(False)
         mainWidget.setSizes([500, 500])
-        mainWidget.setStyleSheet(
-            "QSplitterHandle {background-color: lightgray;}")
+        mainWidget.setStyleSheet("QSplitterHandle {background-color: lightgray;}")
 
         self.setCentralWidget(mainWidget)
 
         self.__setAiEnabled(self.__wrapper.is_available())
 
     def __run(self, text):
-        self.__chatBrowser.addMessage(self.__wrapper.get_message_obj('user', text))
+        self.__chatBrowser.addMessage(self.__wrapper.get_message_obj("user", text))
         images = self.__fileListWidget.get_filenames()
         self.__t = Thread(self.__wrapper, text, images)
         self.__t.started.connect(self.__started)
@@ -127,8 +146,10 @@ class MainWindow(QMainWindow):
         self.__chatBrowser.addMessage(response)
 
     def __errorGenerated(self, error: str):
-        self.__chatBrowser.addMessage(self.__wrapper.get_message_obj('assistant', error))
-        QMessageBox.critical(self, 'Error', error)
+        self.__chatBrowser.addMessage(
+            self.__wrapper.get_message_obj("assistant", error)
+        )
+        QMessageBox.critical(self, "Error", error)
 
     def __finished(self):
         pass
@@ -139,7 +160,7 @@ if __name__ == "__main__":
     import sys
 
     app = QApplication(sys.argv)
-    QApplication.setWindowIcon(QIcon('logo.png'))
+    QApplication.setWindowIcon(QIcon("logo.png"))
     w = MainWindow()
     w.show()
     sys.exit(app.exec())

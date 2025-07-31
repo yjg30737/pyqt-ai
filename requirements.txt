@@ -12,12 +12,16 @@ psycopg2
 
 # llamaindex
 llama-index
-langchain
 pillow
+
+# langchain
+langgraph
+langchain_ollama
 
 # replicate
 replicate
 
 # ETC
 requests
+black
 

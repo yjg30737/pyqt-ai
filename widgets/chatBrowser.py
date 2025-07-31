@@ -1,5 +1,12 @@
 from qtpy.QtCore import Qt, Signal
-from qtpy.QtWidgets import QScrollArea, QVBoxLayout, QWidget, QLabel, QHBoxLayout, QTextEdit
+from qtpy.QtWidgets import (
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
+    QLabel,
+    QHBoxLayout,
+    QTextEdit,
+)
 
 
 class ChatBrowser(QScrollArea):
@@ -22,20 +29,22 @@ class ChatBrowser(QScrollArea):
             self.addMessage(message)
 
     def addMessage(self, message):
-        content = message['content']
-        role = message['role']
+        content = message["content"]
+        role = message["role"]
         chatLbl = QLabel(content)
         chatLbl.setWordWrap(True)
         chatLbl.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        if role == 'user':
-            chatLbl.setStyleSheet('QLabel { padding: 1em }')
+        if role == "user":
+            chatLbl.setStyleSheet("QLabel { padding: 1em }")
         else:
-            chatLbl.setStyleSheet('QLabel { background-color: #DDD; padding: 1em }')
+            chatLbl.setStyleSheet("QLabel { background-color: #AAA; padding: 1em }")
         self.widget().layout().addWidget(chatLbl)
 
     def event(self, e):
         if e.type() == 43:
-            self.verticalScrollBar().setSliderPosition(self.verticalScrollBar().maximum())
+            self.verticalScrollBar().setSliderPosition(
+                self.verticalScrollBar().maximum()
+            )
         return super().event(e)
 
     def getAllText(self):
@@ -48,7 +57,7 @@ class ChatBrowser(QScrollArea):
                     if isinstance(widget, QLabel):
                         all_text_lst.append(widget.text())
 
-        return '\n'.join(all_text_lst)
+        return "\n".join(all_text_lst)
 
 
 class TextEditPrompt(QTextEdit):
@@ -59,7 +68,7 @@ class TextEditPrompt(QTextEdit):
         self.__initUi()
 
     def __initUi(self):
-        self.setStyleSheet('QTextEdit { border: 1px solid #AAA; } ')
+        self.setStyleSheet("QTextEdit { border: 1px solid #AAA; } ")
         self.setAcceptRichText(False)
 
     def keyPressEvent(self, e):
@@ -100,4 +109,3 @@ class PromptWidget(QWidget):
 
     def getTextEdit(self):
         return self.__textEdit
-

@@ -1,8 +1,16 @@
 import subprocess
 
 from qtpy.QtCore import Qt, Signal
-from qtpy.QtWidgets import QPushButton, QFileDialog, QHBoxLayout, QLabel, QWidget, QAction, \
-    QMenu, QLineEdit
+from qtpy.QtWidgets import (
+    QPushButton,
+    QFileDialog,
+    QHBoxLayout,
+    QLabel,
+    QWidget,
+    QAction,
+    QMenu,
+    QLineEdit,
+)
 
 
 class FindPathLineEdit(QLineEdit):
@@ -27,19 +35,19 @@ class FindPathLineEdit(QLineEdit):
         if text_width > self.width():
             self.setToolTip(text)
         else:
-            self.setToolTip('')
+            self.setToolTip("")
 
     def __prepareMenu(self, pos):
         menu = QMenu(self)
-        openDirAction = QAction('Open Path')
-        openDirAction.setEnabled(self.text().strip() != '')
+        openDirAction = QAction("Open Path")
+        openDirAction.setEnabled(self.text().strip() != "")
         openDirAction.triggered.connect(self.__openPath)
         menu.addAction(openDirAction)
         menu.exec(self.mapToGlobal(pos))
 
     def __openPath(self):
         filename = self.text()
-        path = filename.replace('/', '\\')
+        path = filename.replace("/", "\\")
         subprocess.Popen(r'explorer /select,"' + path + '"')
 
 
@@ -47,21 +55,21 @@ class FindPathWidget(QWidget):
     findClicked = Signal()
     added = Signal(str)
 
-    def __init__(self, default_filename: str = ''):
+    def __init__(self, default_filename: str = ""):
         super().__init__()
         self.__initVal()
         self.__initUi(default_filename)
 
     def __initVal(self):
-        self.__ext_of_files = ''
+        self.__ext_of_files = ""
         self.__directory = False
 
-    def __initUi(self, default_filename: str = ''):
+    def __initUi(self, default_filename: str = ""):
         self.__pathLineEdit = FindPathLineEdit()
         if default_filename:
             self.__pathLineEdit.setText(default_filename)
 
-        self.__pathFindBtn = QPushButton('Find')
+        self.__pathFindBtn = QPushButton("Find")
 
         self.__pathFindBtn.clicked.connect(self.__find)
 
@@ -99,14 +107,20 @@ class FindPathWidget(QWidget):
 
     def __find(self):
         if self.isForDirectory():
-            filename = QFileDialog.getExistingDirectory(self, 'Open Directory', '', QFileDialog.ShowDirsOnly)
+            filename = QFileDialog.getExistingDirectory(
+                self, "Open Directory", "", QFileDialog.ShowDirsOnly
+            )
             if filename:
                 pass
             else:
                 return
         else:
-            str_exp_files_to_open = self.__ext_of_files if self.__ext_of_files else 'All Files (*.*)'
-            filename = QFileDialog.getOpenFileName(self, 'Find', '', str_exp_files_to_open)
+            str_exp_files_to_open = (
+                self.__ext_of_files if self.__ext_of_files else "All Files (*.*)"
+            )
+            filename = QFileDialog.getOpenFileName(
+                self, "Find", "", str_exp_files_to_open
+            )
             if filename[0]:
                 filename = filename[0]
             else:

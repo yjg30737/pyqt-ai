@@ -6,7 +6,7 @@ class TableWidget(QTableWidget):
     selectedRecord = Signal(dict)
 
     def __init__(self, parent=None, columns=None):
-        super(TableWidget, self).__init__(parent)
+        super().__init__(parent)
         self.__initVal(columns)
         self.__initUi(columns)
 
@@ -29,7 +29,7 @@ class TableWidget(QTableWidget):
             if key in self.__column_map:
                 column_index = self.__column_map[key]
                 # For the 'tools' column, which contains a list, convert it to a string representation
-                if key == 'tools':
+                if key == "tools":
                     value = str(value)
                 self.setItem(row_position, column_index, QTableWidgetItem(str(value)))
 
@@ -39,7 +39,7 @@ class TableWidget(QTableWidget):
             if self.item(row, index) is not None:
                 record[key] = self.item(row, index).text()
             else:
-                record[key] = ''
+                record[key] = ""
         return record
 
     def __onSelectionChanged(self):

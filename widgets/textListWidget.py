@@ -1,6 +1,15 @@
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QVBoxLayout, QWidget, QListWidget, \
-    QLabel, QSizePolicy, QSpacerItem, QHBoxLayout, QPushButton, QDialog
+from qtpy.QtWidgets import (
+    QVBoxLayout,
+    QWidget,
+    QListWidget,
+    QLabel,
+    QSizePolicy,
+    QSpacerItem,
+    QHBoxLayout,
+    QPushButton,
+    QDialog,
+)
 
 from inputDialog import InputDialog
 
@@ -13,8 +22,8 @@ class AddDelListWidget(QWidget):
     def __initUi(self, lbl):
         self.__listWidget = QListWidget()
 
-        self.__addRowBtn = QPushButton('Add')
-        self.__delRowBtn = QPushButton('Delete')
+        self.__addRowBtn = QPushButton("Add")
+        self.__delRowBtn = QPushButton("Delete")
 
         self.__addRowBtn.clicked.connect(self.__add)
         self.__delRowBtn.clicked.connect(self.__delete)
@@ -41,7 +50,7 @@ class AddDelListWidget(QWidget):
         return self.__listWidget
 
     def __add(self):
-        dialog = InputDialog('Add', [('Name', '', True)], self)
+        dialog = InputDialog("Add", [("Name", "", True)], self)
         reply = dialog.exec()
         if reply == QDialog.Accepted:
             text = dialog.getText()
@@ -49,6 +58,8 @@ class AddDelListWidget(QWidget):
 
     def __delete(self):
         try:
-            self.__listWidget.takeItem(self.__listWidget.row(self.__listWidget.currentItem()))
+            self.__listWidget.takeItem(
+                self.__listWidget.row(self.__listWidget.currentItem())
+            )
         except Exception as e:
             print(e)

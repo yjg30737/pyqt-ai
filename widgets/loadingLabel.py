@@ -9,7 +9,7 @@ class LoadingLabel(QLabel):
         self.__initUi()
 
     def __initVal(self):
-        self.__default_text = 'Loading'
+        self.__default_text = "Loading"
 
     def __initUi(self):
         self.__timer = QTimer(self)
@@ -23,7 +23,7 @@ class LoadingLabel(QLabel):
         self.__timer.start(500)
 
     def __ticking(self):
-        dot = '.'
+        dot = "."
         cur_text = self.text()
         cnt = cur_text.count(dot)
         if cnt % 3 == 0 and cnt != 0:

@@ -8,12 +8,30 @@ from qtpy.QtWidgets import QPushButton, QWidget, QHBoxLayout, QLineEdit, QLabel
 class ApiWidget(QWidget):
     apiKeyAccepted = Signal(str, bool)
 
-    def __init__(self, api_key: str = '', wrapper=None, settings=None, api_key_name='API_KEY', not_check_api=False, group_to_include=None):
+    def __init__(
+        self,
+        api_key: str = "",
+        wrapper=None,
+        settings=None,
+        api_key_name="API_KEY",
+        not_check_api=False,
+        group_to_include=None,
+    ):
         super().__init__()
-        self.__initVal(api_key, wrapper, settings, api_key_name, not_check_api, group_to_include)
+        self.__initVal(
+            api_key, wrapper, settings, api_key_name, not_check_api, group_to_include
+        )
         self.__initUi()
 
-    def __initVal(self, api_key: str = '', wrapper=None, settings=None, api_key_name='API_KEY', not_check_api=False, group_to_include=None):
+    def __initVal(
+        self,
+        api_key: str = "",
+        wrapper=None,
+        settings=None,
+        api_key_name="API_KEY",
+        not_check_api=False,
+        group_to_include=None,
+    ):
         self.__api_key = api_key
         self.__wrapper = wrapper
         self.__settings_ini = settings
@@ -27,14 +45,14 @@ class ApiWidget(QWidget):
         self.__apiLineEdit.setEchoMode(QLineEdit.Password)
         self.__apiLineEdit.setText(self.__api_key)
 
-        submitBtn = QPushButton('Submit')
+        submitBtn = QPushButton("Submit")
         submitBtn.clicked.connect(self.setApi)
 
         self.__apiCheckPreviewLbl = QLabel()
         self.__apiCheckPreviewLbl.setVisible(False)
 
         lay = QHBoxLayout()
-        lay.addWidget(QLabel('API KEY'))
+        lay.addWidget(QLabel("API KEY"))
         lay.addWidget(self.__apiLineEdit)
         lay.addWidget(submitBtn)
         lay.addWidget(self.__apiCheckPreviewLbl)
@@ -64,13 +82,17 @@ class ApiWidget(QWidget):
                 try:
                     f = self.__wrapper.request_and_set_api(self.__api_key)
                     if f:
-                        self.__apiCheckPreviewLbl.setStyleSheet("color: {}".format(QColor(0, 200, 0).name()))
-                        self.__apiCheckPreviewLbl.setText('API key is valid')
+                        self.__apiCheckPreviewLbl.setStyleSheet(
+                            "color: {}".format(QColor(0, 200, 0).name())
+                        )
+                        self.__apiCheckPreviewLbl.setText("API key is valid")
                     else:
                         raise Exception
                 except Exception as e:
-                    self.__apiCheckPreviewLbl.setStyleSheet("color: {}".format(QColor(255, 0, 0).name()))
-                    self.__apiCheckPreviewLbl.setText('API key is invalid')
+                    self.__apiCheckPreviewLbl.setStyleSheet(
+                        "color: {}".format(QColor(255, 0, 0).name())
+                    )
+                    self.__apiCheckPreviewLbl.setText("API key is invalid")
                 finally:
                     self.__apiCheckPreviewLbl.show()
             self.apiKeyAccepted.emit(self.__api_key, f)

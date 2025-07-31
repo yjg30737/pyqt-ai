@@ -8,19 +8,20 @@ from openai import OpenAI
 
 from scripts.db_handler import GenericDBHandler, Conversation, Assistant, Thread
 
-TEXT_MODELS = ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'],
-IMAGE_MODELS = ['dall-e-3']
+TEXT_MODELS = (["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"],)
+IMAGE_MODELS = ["dall-e-3"]
+
 
 # GPTWrapper is a base class for GPTAssistantWrapper and GPTGeneralWrapper
 class GPTWrapper:
-    def __init__(self, api_key=None, db_url='sqlite:///conv.db'):
+    def __init__(self, api_key=None, db_url="sqlite:///conv.db"):
         super().__init__()
         self._client = None
         # Initialize OpenAI client
         self._is_available = True if api_key else False
         if api_key and self._is_available:
             self.set_api(api_key)
-        self._db_handler = ''
+        self._db_handler = ""
         self.init_db(db_url)
 
     def is_available(self):
@@ -29,11 +30,14 @@ class GPTWrapper:
     def set_api(self, api_key):
         self._api_key = api_key
         self._client = OpenAI(api_key=api_key)
-        os.environ['OPENAI_API_KEY'] = api_key
+        os.environ["OPENAI_API_KEY"] = api_key
 
     def request_and_set_api(self, api_key):
         try:
-            response = requests.get('https://api.openai.com/v1/models', headers={'Authorization': f'Bearer {api_key}'})
+            response = requests.get(
+                "https://api.openai.com/v1/models",
+                headers={"Authorization": f"Bearer {api_key}"},
+            )
             self._is_available = response.status_code == 200
             if self._is_available:
                 self.set_api(api_key)
@@ -56,24 +60,27 @@ class GPTWrapper:
 
 
 class GPTAssistantWrapper(GPTWrapper):
-    def __init__(self, api_key=None, db_url='sqlite:///conv.db'):
+    def __init__(self, api_key=None, db_url="sqlite:///conv.db"):
         super().__init__(api_key=api_key, db_url=db_url)
         self.__assistant_id = None
         self.__thread_id = None
         self.__assistants = []
 
-    def get_assistants(self, order='desc', limit=None):
+    def get_assistants(self, order="desc", limit=None):
         if self._client is None:
             return None
         assistants = self._client.beta.assistants.list(order=order, limit=limit)
-        assistants = [{
-            "assistant_id": assistant.id,
-            "name": assistant.name,
-            "instructions": assistant.instructions,
-            "tools": assistant.tools,
-            "model": assistant.model,
-            "thread": '',
-        } for assistant in assistants]
+        assistants = [
+            {
+                "assistant_id": assistant.id,
+                "name": assistant.name,
+                "instructions": assistant.instructions,
+                "tools": assistant.tools,
+                "model": assistant.model,
+                "thread": "",
+            }
+            for assistant in assistants
+        ]
         self.__assistants = assistants
         return self.__assistants
 
@@ -83,7 +90,7 @@ class GPTAssistantWrapper(GPTWrapper):
 
     def __set_current_thread(self):
         if self.__assistant_id is None:
-            raise ValueError('Assistant is not initialized yet')
+            raise ValueError("Assistant is not initialized yet")
         else:
             # thread = self._db_handler.query_table(Thread, {"name": name, "assistant_id": self.__assistant_id})
             # if thread:
@@ -98,14 +105,12 @@ class GPTAssistantWrapper(GPTWrapper):
                     break
             # self._db_handler.append(Thread, thread_obj)
 
-    def send_message(self, message_str, instructions=''):
+    def send_message(self, message_str, instructions=""):
         user_obj = self.get_message_obj("user", message_str)
         self._db_handler.append(Conversation, user_obj)
 
         self._client.beta.threads.messages.create(
-            thread_id=self.__thread_id,
-            role="user",
-            content=message_str
+            thread_id=self.__thread_id, role="user", content=message_str
         )
 
         run = self._client.beta.threads.runs.create(
@@ -115,16 +120,19 @@ class GPTAssistantWrapper(GPTWrapper):
         )
 
         response = self._client.beta.threads.runs.retrieve(
-          thread_id=self.__thread_id,
-          run_id=run.id
+            thread_id=self.__thread_id, run_id=run.id
         )
 
         while response.status == "in_progress" or response.status == "queued":
-            response = self._client.beta.threads.runs.retrieve(thread_id=self.__thread_id, run_id=run.id)
+            response = self._client.beta.threads.runs.retrieve(
+                thread_id=self.__thread_id, run_id=run.id
+            )
 
         response = self._client.beta.threads.messages.list(thread_id=self.__thread_id)
         response = response.dict()["data"][0]
-        response = self.get_message_obj(response['role'], response['content'][0]['text']['value'])
+        response = self.get_message_obj(
+            response["role"], response["content"][0]["text"]["value"]
+        )
         self._db_handler.append(Conversation, response)
         return response
 
@@ -137,10 +145,10 @@ class GPTGeneralWrapper(GPTWrapper):
         # Function to encode the image
         def encode_image(image_path):
             with open(image_path, "rb") as image_file:
-                return base64.b64encode(image_file.read()).decode('utf-8')
+                return base64.b64encode(image_file.read()).decode("utf-8")
 
         base64_image = encode_image(image_path)
-        return f'data:image/jpeg;base64,{base64_image}'
+        return f"data:image/jpeg;base64,{base64_image}"
 
     def get_arguments(
         self,
@@ -153,7 +161,7 @@ class GPTGeneralWrapper(GPTWrapper):
         presence_penalty=0,
         response_format="text",
         objective: dict = {},
-        cur_text: str = '',
+        cur_text: str = "",
         use_max_tokens=False,
         max_tokens=128000,
         stream=False,
@@ -162,7 +170,7 @@ class GPTGeneralWrapper(GPTWrapper):
         system_obj = self.get_message_obj("system", system)
         previous_messages = [system_obj] + self.get_conversations()
 
-        if response_format == 'text':
+        if response_format == "text":
             pass
         else:
             cur_text = objective["cur_text"] + " " + str(objective["json_format"])
@@ -185,25 +193,22 @@ class GPTGeneralWrapper(GPTWrapper):
                 for image in images_for_vision:
                     multiple_images_content.append(
                         {
-                            'type': 'image_url',
-                            'image_url': {
-                                'url': self.get_image_url_from_local(image)
-                            }
+                            "type": "image_url",
+                            "image_url": {"url": self.get_image_url_from_local(image)},
                         }
                     )
 
                 multiple_images_content = [
-                                              {
-                                                  "type": "text",
-                                                  "text": cur_text
-                                              }
-                                          ] + multiple_images_content[:]
-                openai_arg['messages'].append({"role": "user", "content": multiple_images_content})
+                    {"type": "text", "text": cur_text}
+                ] + multiple_images_content[:]
+                openai_arg["messages"].append(
+                    {"role": "user", "content": multiple_images_content}
+                )
             user_obj = self.get_message_obj("user", cur_text)
             self._db_handler.append(Conversation, user_obj)
-            openai_arg['messages'].append(user_obj)
+            openai_arg["messages"].append(user_obj)
             if use_max_tokens:
-                openai_arg['max_tokens'] = max_tokens
+                openai_arg["max_tokens"] = max_tokens
 
             return openai_arg
         except Exception as e:
@@ -219,41 +224,51 @@ class GPTGeneralWrapper(GPTWrapper):
 
                 return response
             else:
-                raise ValueError('GPT is not available')
+                raise ValueError("GPT is not available")
         except Exception as e:
             raise Exception(e)
 
-    def get_image_response(self, model='dall-e-3', input_args=None):
-        image_data = ''
+    def get_image_response(self, model="dall-e-3", input_args=None):
+        image_data = ""
 
         model = "dall-e-3" if model is None else model
 
-        input_args = {
-            "size": f"{input_args['width']}x{input_args['height']}",
-            "prompt": "Astronaut in a jungle, cold color palette, muted colors, detailed, 8k",
-            "negative_prompt": "ugly, deformed, noisy, blurry, distorted",
-        } if input_args is None else input_args
+        input_args = (
+            {
+                "size": f"{input_args['width']}x{input_args['height']}",
+                "prompt": "Astronaut in a jungle, cold color palette, muted colors, detailed, 8k",
+                "negative_prompt": "ugly, deformed, noisy, blurry, distorted",
+            }
+            if input_args is None
+            else input_args
+        )
 
         input_args["n"] = 1 if "n" not in input_args else input_args["n"]
-        input_args["style"] = 'vivid' if "style" not in input_args else input_args["style"]
-        input_args["response_format"] = 'b64_json' if "response_format" not in input_args else input_args["response_format"]
-        input_args["quality"] = 'standard' if "quality" not in input_args else input_args["quality"]
+        input_args["style"] = (
+            "vivid" if "style" not in input_args else input_args["style"]
+        )
+        input_args["response_format"] = (
+            "b64_json"
+            if "response_format" not in input_args
+            else input_args["response_format"]
+        )
+        input_args["quality"] = (
+            "standard" if "quality" not in input_args else input_args["quality"]
+        )
 
-        del input_args['width']
-        del input_args['height']
+        del input_args["width"]
+        del input_args["height"]
 
-        input_args['model'] = model
+        input_args["model"] = model
 
         try:
             if self.is_available():
-                response = self._client.images.generate(
-                    **input_args
-                )
+                response = self._client.images.generate(**input_args)
                 for _ in response.data:
                     image_data = _.b64_json
                 return image_data
             else:
-                raise ValueError('GPT is not available')
+                raise ValueError("GPT is not available")
         except Exception as e:
             print(e)
             raise Exception(e)

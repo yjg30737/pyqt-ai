@@ -2,8 +2,18 @@ import os
 
 from qtpy.QtCore import Signal, Qt
 from qtpy.QtGui import QFontMetrics
-from qtpy.QtWidgets import QListWidget, QWidget, QVBoxLayout, QLabel, QHBoxLayout, QSpacerItem, QPushButton, \
-    QSizePolicy, QFileDialog, QFrame
+from qtpy.QtWidgets import (
+    QListWidget,
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QHBoxLayout,
+    QSpacerItem,
+    QPushButton,
+    QSizePolicy,
+    QFileDialog,
+    QFrame,
+)
 
 
 class DirListWidget(QWidget):
@@ -17,12 +27,12 @@ class DirListWidget(QWidget):
         self.__initUi()
 
     def __initVal(self):
-        self.__dirLblPrefix = 'Directory: '
-        self.__curDirName = ''
+        self.__dirLblPrefix = "Directory: "
+        self.__curDirName = ""
 
     def __initUi(self):
-        lbl = QLabel('Files')
-        setDirBtn = QPushButton('Set Directory')
+        lbl = QLabel("Files")
+        setDirBtn = QPushButton("Set Directory")
         setDirBtn.clicked.connect(self.__setDir)
         self.__dirLbl = QLabel(self.__dirLblPrefix)
 
@@ -52,19 +62,27 @@ class DirListWidget(QWidget):
 
     def __setDir(self):
         directory = QFileDialog.getExistingDirectory(self, "Select Directory")
-        ext_lst = ['.txt', '.pdf']
+        ext_lst = [".txt", ".pdf"]
         if directory:
             self.__listWidget.clear()
-            filenames = list(filter(lambda x: os.path.splitext(x)[-1] in ext_lst, os.listdir(directory)))
+            filenames = list(
+                filter(
+                    lambda x: os.path.splitext(x)[-1] in ext_lst, os.listdir(directory)
+                )
+            )
             self.__listWidget.addItems(filenames)
             self.itemUpdate.emit(len(filenames) > 0)
             self.__curDirName = directory
-            self.__dirLbl.setText(self.__curDirName.split('/')[-1])
+            self.__dirLbl.setText(self.__curDirName.split("/")[-1])
 
             self.__listWidget.setCurrentRow(0)
             # activate event as clicking first item (because this selects the first item anyway)
             if self.__listWidget.count() > 0:
-                self.clicked.emit(os.path.join(self.__curDirName, self.__listWidget.currentItem().text()))
+                self.clicked.emit(
+                    os.path.join(
+                        self.__curDirName, self.__listWidget.currentItem().text()
+                    )
+                )
             self.onDirectorySelected.emit(self.__curDirName)
 
     def getDir(self):

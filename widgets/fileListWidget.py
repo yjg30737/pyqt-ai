@@ -1,7 +1,17 @@
 import os
 from pathlib import Path
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QVBoxLayout, QWidget, QListWidget, QLabel, QSizePolicy, QSpacerItem, QHBoxLayout, QPushButton, QFileDialog
+from qtpy.QtWidgets import (
+    QVBoxLayout,
+    QWidget,
+    QListWidget,
+    QLabel,
+    QSizePolicy,
+    QSpacerItem,
+    QHBoxLayout,
+    QPushButton,
+    QFileDialog,
+)
 
 from widgets.imageView import ImageView
 
@@ -13,7 +23,7 @@ class FileListWidget(QWidget):
         self._init_ui(label)
 
     def _init_values(self):
-        self.supported_extensions = ['.jpg', '.png']
+        self.supported_extensions = [".jpg", ".png"]
 
     def _init_ui(self, label):
         self._setup_list_widget()
@@ -27,8 +37,8 @@ class FileListWidget(QWidget):
         self.list_widget.doubleClicked.connect(self._show_image)
 
     def _setup_buttons(self):
-        self.add_button = QPushButton('Add')
-        self.delete_button = QPushButton('Delete')
+        self.add_button = QPushButton("Add")
+        self.delete_button = QPushButton("Delete")
         self.add_button.clicked.connect(self._read_files)
         self.delete_button.clicked.connect(self._delete_selected_item)
 
@@ -56,7 +66,9 @@ class FileListWidget(QWidget):
 
     def _delete_selected_item(self):
         try:
-            self.list_widget.takeItem(self.list_widget.row(self.list_widget.currentItem()))
+            self.list_widget.takeItem(
+                self.list_widget.row(self.list_widget.currentItem())
+            )
             self._toggle_delete_button()
         except Exception as e:
             print(e)
@@ -65,12 +77,14 @@ class FileListWidget(QWidget):
         self.__image_viewer = ImageView()
         self.__image_viewer.setWindowFlag(Qt.WindowStaysOnTopHint)
         self.__image_viewer.setWindowFlag(Qt.WindowCloseButtonHint)
-        self.__image_viewer.setWindowTitle('View Image')
+        self.__image_viewer.setWindowTitle("View Image")
         self.__image_viewer.setFilename(self.list_widget.currentItem().text())
         self.__image_viewer.show()
 
     def _read_files(self):
-        file_dialog = QFileDialog(self, 'Find', os.path.expanduser('~'), 'Image Files (*.jpg *.png)')
+        file_dialog = QFileDialog(
+            self, "Find", os.path.expanduser("~"), "Image Files (*.jpg *.png)"
+        )
         selected_files, _ = file_dialog.getOpenFileNames()
         if selected_files:
             for filename in selected_files:
@@ -86,9 +100,15 @@ class FileListWidget(QWidget):
         pass
 
     def dropEvent(self, event):
-        files = [url.toLocalFile() for url in event.mimeData().urls() if Path(url.toLocalFile()).suffix in self.supported_extensions]
+        files = [
+            url.toLocalFile()
+            for url in event.mimeData().urls()
+            if Path(url.toLocalFile()).suffix in self.supported_extensions
+        ]
         self.list_widget.addItems(files)
         super().dropEvent(event)
 
     def get_filenames(self):
-        return [self.list_widget.item(i).text() for i in range(self.list_widget.count())]
+        return [
+            self.list_widget.item(i).text() for i in range(self.list_widget.count())
+        ]

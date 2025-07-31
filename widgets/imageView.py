@@ -14,7 +14,7 @@ class ImageView(QGraphicsView):
 
     def __initVal(self):
         self.__scene = QGraphicsScene()
-        self.__item = ''
+        self.__item = ""
         self.setScene(self.__scene)
 
     def __initUi(self):
@@ -25,12 +25,14 @@ class ImageView(QGraphicsView):
     def __initAction(self):
         self.__saveAction = QAction("Save Image", self)
         self.__saveAction.triggered.connect(self.__saveImage)
-        self.__saveAction.setShortcut('Ctrl+S')
+        self.__saveAction.setShortcut("Ctrl+S")
         self.__saveAction.setShortcutContext(Qt.WidgetShortcut)
         self.__saveAction.setEnabled(False)
 
     def __saveImage(self):
-        filename = QFileDialog.getSaveFileName(self, "Save Image", "", "Images (*.png *.jpg *.jpeg *.bmp *.gif)")
+        filename = QFileDialog.getSaveFileName(
+            self, "Save Image", "", "Images (*.png *.jpg *.jpeg *.bmp *.gif)"
+        )
         if filename[0]:
             self.__scene.clearSelection()
             image = self.__scene.items()[0]

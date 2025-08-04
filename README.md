@@ -14,7 +14,8 @@ Using SQLite as database, which is lighthearted and easy to use.
 * GPT Assistant Chatbot
 * GPT Vision Chatbot
 * LlamaIndex with OpenAI Chatbot
-* Replicate Image Generator 
+* Replicate Image Generator
+* Ollama Chatbot Example (using LangChain) - You need Ollama to run this successfully
 
 ## Directory Structure
 ```
@@ -39,14 +40,18 @@ psycopg2
 
 # llamaindex
 llama-index
-langchain
 pillow
+
+# langchain
+langgraph
+langchain_ollama
 
 # replicate
 replicate
 
 # ETC
 requests
+black
 ```
 
 ## How to Install

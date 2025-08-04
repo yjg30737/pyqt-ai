@@ -11,6 +11,21 @@ class OllamaWrapper:
         self.__llm = ""
         self.__model_name = ""
 
+    # Check if Ollama is installed
+    @staticmethod
+    def is_ollama_installed():
+        try:
+            subprocess.run(["ollama", "--version"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return True
+        except FileNotFoundError:
+            return False
+
+    # Check if Ollama is running
+    @staticmethod
+    def run_ollama_serve():
+        """Starts the Ollama service in a subprocess."""
+        subprocess.Popen(["ollama", "serve"])
+
     def get_model_name(self):
         """
         Get the name of the current model.
@@ -39,9 +54,11 @@ class OllamaWrapper:
         )
         return model in result.stdout
 
+
     def get_ollama_models(self):
         cmd = ["ollama", "list"]
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
+
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=5)
 
         if result.returncode != 0:
             raise RuntimeError(f"Failed to run ollama list: {result.stderr}")
@@ -74,6 +91,8 @@ class OllamaWrapper:
         """
         Send a message to the LLM and return the response.
         """
+        if not self.__llm:
+            raise ValueError("Model is not set. Please set a model before sending a message.")
         response = self.__llm.invoke(message)
         return response
 

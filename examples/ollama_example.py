@@ -1,5 +1,6 @@
 import os
 import sys
+import threading
 
 # Get the absolute path of the current script file
 script_path = os.path.abspath(__file__)
@@ -58,6 +59,15 @@ class MainWindow(QMainWindow):
 
     def __initVal(self):
         self.__wrapper = OllamaWrapper()
+        if not self.__wrapper.is_ollama_installed():
+            QMessageBox.critical(
+                self,
+                "Error",
+                "Ollama is not installed. Please install it from https://ollama.com/docs/installation.",
+            )
+            sys.exit(1)
+        ollama_thread = threading.Thread(target=self.__wrapper.run_ollama_serve())
+        ollama_thread.start()
 
     def __initUi(self):
         self.setWindowTitle("PyQt Ollama Chatbot Example")
@@ -110,11 +120,15 @@ class MainWindow(QMainWindow):
         self.__tableWidget.itemSelectionChanged.connect(self.setCurrentModel)
 
     def setCurrentModel(self):
-        model_name = self.__tableWidget.item(self.__tableWidget.currentRow(), 1).text()
-        self.__currentModelLbl.setText(
-            f"Current Model: {model_name if self.__tableWidget.rowCount() > 0 else 'None'}"
-        )
-        self.__wrapper.set_model_name(model_name)
+        model_name_item = self.__tableWidget.item(self.__tableWidget.currentRow(), 1)
+        if model_name_item:
+            model_name = self.__tableWidget.item(self.__tableWidget.currentRow(), 1).text()
+            self.__currentModelLbl.setText(
+                f"Current Model: {model_name if self.__tableWidget.rowCount() > 0 else 'None'}"
+            )
+            self.__wrapper.set_model_name(model_name)
+        else:
+            self.__currentModelLbl.setText("Current Model: ")
 
     def __showModels(self):
         models = self.__wrapper.get_ollama_models()
